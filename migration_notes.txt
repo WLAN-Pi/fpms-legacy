@@ -1,0 +1,39 @@
+Migrating from the old NanoHatOLED & BakeBit repos to the new single 'fpms' repo:
+
+1. Edit the oled-start file : "sudo nano /usr/local/bin/oled-start"
+
+    from:
+
+        #!/bin/sh
+        cd /home/wlanpi/NanoHatOLED
+        ./NanoHatOLED
+
+    to:
+
+        #!/bin/sh
+        cd /home/wlanpi/fpms
+        ./NanoHatOLED
+
+2. Run "sudo crontab -e" and change :
+
+        @reboot /home/wlanpi/NanoHatOLED/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh
+
+    to:
+
+        @reboot /home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh
+
+3. Clone the "fpms" repo as wlanpi user:
+
+    cd ~
+    git clone https://github.com/WLAN-Pi/fpms.git
+
+4. Remove the old NanoHatOLED folder:
+
+    cd ~
+    sudo rm -rf ./NanoHatOLED
+
+5. Synce filesystem:
+
+    sudo sync
+
+6. Power off/on (not reboot from CLI ) the WLAN Pi 
