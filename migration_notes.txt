@@ -32,7 +32,7 @@ Migrating from the old NanoHatOLED & BakeBit repos to the new single 'fpms' repo
     cd ~
     sudo rm -rf ./NanoHatOLED
 
-5. Synce filesystem:
+5. Sync filesystem:
 
     sudo sync
 
