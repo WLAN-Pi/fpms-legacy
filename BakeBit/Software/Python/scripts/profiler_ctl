@@ -1,0 +1,194 @@
+#! /bin/bash
+#
+# profiler_ctl - script to switch profiler on/off
+#                  (usually called from the WLANPi menu system)    
+#
+# Written by Nigel Bowden <wifinigel@gmail.com>.
+#
+# History:
+#
+# v0.01 - 1st  Aug 2019 - initial version
+# v0.02 - 12th Aug 2019 - removed networking restart when stopping profiler
+
+set -e
+
+NAME=profiler_ctl
+HOME_DIR=/home/wlanpi/fpms/BakeBit/Software/Python/scripts
+REPORTS_DIR=/var/www/html/profiler/reports
+DESC="Script to switch profiler on/off"
+VERSION=0.02
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
+
+###############################################################################
+#
+# Launch profiler:
+#
+###############################################################################
+profiler_start () {
+  # If already running, do nothing & return message
+  if ! [[ -z `pgrep -f profiler.py` ]]; then
+    echo "Profiler is running."
+    return
+  fi
+  
+  # Launch Profiler as background process (as the wlanpi user)
+  # (Output sent to /dev/null so that interactive process returns and
+  # doesn't hang calling script)
+  
+  # delete menu report file if it exists
+  if [ -e /tmp/profiler_menu_report.txt ]; then
+    rm /tmp/profiler_menu_report.txt
+  fi
+  
+  su -c '/usr/bin/python /home/wlanpi/profiler/profiler.py --menu_mode > /dev/null 2>&1 &'
+    
+  # Signal that profiler active
+  echo "Profiler start initiated."
+
+}
+
+profiler_start_no11r () {
+  # If already running, do nothing & return message
+  if ! [[ -z `pgrep -f profiler.py` ]]; then
+    echo "Profiler is running."
+    return
+  fi
+  
+  # Launch Profiler as background process with no 11r IEs (as the wlanpi user)
+  
+  # delete menu report file if it exists
+  if [ -e /tmp/profiler_menu_report.txt ]; then
+    rm /tmp/profiler_menu_report.txt
+  fi
+  
+  su -c '/usr/bin/python /home/wlanpi/profiler/profiler.py --menu_mode --no11r > /dev/null 2>&1 &'
+    
+  # Signal that profiler active
+  echo "Profiler start initiated. (no 11r)"
+
+}
+
+###############################################################################
+#
+# Kill profiler:
+#
+###############################################################################
+profiler_stop () {
+  # Check Profiler is running and kill it
+  if ! [[ -z `pgrep -f profiler.py` ]]; then
+    echo "Killing Profiler process"
+    kill `pgrep -f profiler.py`
+    
+    # also delete menu report file if it exists
+    if [ -e /tmp/profiler_menu_report.txt ]; then
+      rm /tmp/profiler_menu_report.txt
+    fi
+    
+  else
+    echo "Profiler not running"
+    return
+  fi
+}
+
+###############################################################################
+#
+# Return profiler status:
+#
+###############################################################################
+status () {
+  # Check if we see the profiler process and report positive or negative message
+  if ! [[ -z `pgrep -f profiler.py` ]]; then
+  
+    if [ -e /tmp/profiler_menu_report.txt ]; then
+      mapfile < /tmp/profiler_menu_report.txt
+      echo "${MAPFILE[@]}"
+    else
+      echo "Starting..."
+      echo "(Please wait)"
+    fi
+    
+  else
+    echo "Profiler not running"
+    return
+  fi
+}
+
+is_running () {
+    #Binary 0/1 to indicate if process running
+    if ! [[ -z `pgrep -f profiler.py` ]]; then
+        return 1
+    else
+        return 0
+    fi
+
+}
+
+###############################################################################
+#
+# Purge old reports:
+#
+###############################################################################
+purge_reports () {
+  # If already running, display message to say needs to be stopped
+  if ! [[ -z `pgrep -f profiler.py` ]]; then
+    echo "Profiler running, stop profiler to purge reports."
+    return
+  fi
+  
+  # if report dir already empty, forget it
+  if [ -z "$(ls -A $REPORTS_DIR)" ]; then
+    echo "Report dir empty"
+  else
+    su -c '/usr/bin/python /home/wlanpi/profiler/profiler.py --clean > /dev/null 2>&1 &'
+    # Signal that profiler active
+    echo "Reports purge initiated"
+    sleep 1
+  fi
+}
+
+###############################################################################
+#
+# Return script version:
+#
+###############################################################################
+version () {
+    N=$HOME_DIR/$NAME
+        echo "Version: $N $VERSION" >&2
+        exit 1
+
+}
+
+case "$1" in
+  start)
+        profiler_start
+        ;;
+  start_no11r)
+        profiler_start_no11r
+        ;;
+  stop)
+        profiler_stop
+        ;;
+  status)
+        status
+        ;;
+  is_running)
+        is_running
+        ;;
+  purge)
+        purge_reports
+        ;;
+  version)
+        version;;
+  *)
+        N=$HOME_DIR/$NAME
+        echo "Usage: $N {start|start_no11r|stop|status|is_running|purge|version}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
+
