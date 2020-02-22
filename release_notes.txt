@@ -1,1 +1,39 @@
 v0.36 - Moved to single FPMS repo
+
+*** Note ****
+If you are moving from the previous Bakebit/NanoHatOLED GitHub repos, you must also perform the following steps once you have installed FPMS using pkg_admin:
+
+(Note this is a one-way operation - you will need to re-image your WLAN Pi if there are any issues and you wish to revert)
+
+1. Edit the oled-start file : "sudo nano /usr/local/bin/oled-start"
+
+    from:
+
+        #!/bin/sh
+        cd /home/wlanpi/NanoHatOLED
+        ./NanoHatOLED
+
+    to:
+
+        #!/bin/sh
+        cd /home/wlanpi/fpms
+        ./NanoHatOLED
+
+2. Run "sudo crontab -e" and change :
+
+        @reboot /home/wlanpi/NanoHatOLED/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh
+
+    to:
+
+        @reboot /home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh
+
+3. Remove the old NanoHatOLED folder:
+
+    cd ~
+    sudo rm -rf ./NanoHatOLED
+
+4. Sync filesystem:
+
+    sudo sync
+
+5. Power off/on (not reboot from CLI ) the WLAN Pi 
