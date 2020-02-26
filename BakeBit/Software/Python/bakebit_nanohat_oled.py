@@ -72,6 +72,7 @@ To do:
 
 '''
 
+
 import bakebit_128_64_oled as oled
 from PIL import Image
 from PIL import ImageFont
@@ -85,6 +86,8 @@ import socket
 import types
 import re
 from textwrap import wrap
+
+from modules.navigation import *
 
 __version__ = "0.36 (beta)"
 __author__ = "wifinigel@gmail.com"
@@ -228,31 +231,10 @@ def get_ip():
         s.close()
     return IP
 
-##########################
-# Draw navigation buttons
-##########################
 
+# Create obj for on-screen button labels
+nav_button_obj = NavButton(draw, nav_bar_top, 255, smartFont)
 
-def nav_button(label, position):
-    global draw
-    global nav_bar_top
-    draw.text((position, nav_bar_top), label, font=smartFont, fill=255)
-    return
-
-
-def back_button(label="Back"):
-    nav_button(label, 100)
-    return
-
-
-def next_button(label="Next"):
-    nav_button(label, 50)
-    return
-
-
-def down_button(label="Down"):
-    nav_button(label, 0)
-    return
 
 ##############################################
 # Page & menu functions
@@ -335,11 +317,11 @@ def display_simple_table(item_list, back_button_req=0, title='', font="small"):
 
         # show down if not at end of list in display window
         if table_bottom_entry < table_list_length:
-            down_button()
+            nav_button_obj.down()
 
         # show an up button if not at start of list
         if current_scroll_selection > 0:
-            next_button(label="Up")
+            nav_button_obj.next(label="Up")
 
     for item in item_list:
 
@@ -352,7 +334,7 @@ def display_simple_table(item_list, back_button_req=0, title='', font="small"):
 
     # Back button
     if back_button_req:
-        back_button(label="Exit")
+        nav_button_obj.back(label="Exit")
 
     oled.drawImage(image)
 
@@ -458,14 +440,14 @@ def display_paged_table(table_data, back_button_req=0):
 
         # if (current_scroll_selection < page_count) and (current_scroll_selection < page_count-1):
         if current_scroll_selection < page_count-1:
-            down_button(label="PgDn")
+            nav_button_obj.down(label="PgDn")
 
         if (current_scroll_selection > 0) and (current_scroll_selection <= page_count - 1):
-            next_button(label="PgUp")
+            nav_button_obj.next(label="PgUp")
 
     # Back button
     if back_button_req:
-        back_button(label="Exit")
+        nav_button_obj.back(label="Exit")
 
     oled.drawImage(image)
 
@@ -647,13 +629,13 @@ def draw_page():
         y += y_offset
 
     # add nav buttons
-    down_button()
-    next_button()
+    nav_button_obj.down()
+    nav_button_obj.next()
     # Don't show back button at top level of menu
     if depth != 1:
-        back_button()
+        nav_button_obj.back()
     else:
-        back_button(label="Exit")
+        nav_button_obj.back(label="Exit")
 
     oled.drawImage(image)
 
@@ -758,7 +740,7 @@ def show_date():
     draw.text((1, 41), "TZ: " + text, font=font12, fill=255)
 
     # Back button
-    back_button()
+    nav_button_obj.back()
 
     oled.drawImage(image)
 
@@ -1842,7 +1824,7 @@ def home_page():
     draw.text((95, 20), if_name, font=smartFont, fill=255)
     draw.text((0, 29), str(ip_addr), font=font14, fill=255)
     draw.text((0, 43), str(mode_name), font=smartFont, fill=255)
-    back_button('Menu')
+    nav_button_obj.back('Menu')
     oled.drawImage(image)
 
     drawing_in_progress = False
