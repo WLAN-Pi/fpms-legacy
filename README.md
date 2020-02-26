@@ -5,7 +5,17 @@ This project is the consolidation of the forked NanoHatOLED & BakeBit repos that
 
 The original repos contained many files that were not needed for the WLAN Pi, and were also based on python 2. This provided a number of support issues. Therefore, both repos were combined in to a unified repo, conversions were completed to support python 3 and extraneous files from the original repos were removed to provide a slimmed down code base.
 
-The repo may be installed on to a WLAN Pi by simply cloning this repo as the wlanpi user:
+## Installation notes
+
+Before fpms can be installed, some additional python3 modules are required. Complete the following steps:
+
+``` 
+sudo apt-get update
+sudo apt-get install python3-smbus
+sudo python3 -m pip install pillow
+```
+
+The repo may be installed on to a WLAN Pi by cloning this repo as the wlanpi user:
 
 ```
 cd ~
@@ -62,8 +72,9 @@ Once the fpms package has been successfully installed and is operational, it may
 
 The move to python 3.5 required several file updates to provide support for the new python version. When moving to python 3.7 in the future, these will need to be completed again (with appropriate updates for 3.7) to support the new version. The steps are documented here for future reference (these were kindly figured out & provided by Adrian Granados):
 
-    1. Install the following packages:
+    1. Update the package list and install the following packages:
 
+    sudo apt-get update
     sudo apt-get install python3-smbus
     sudo python3 -m pip install pillow
 

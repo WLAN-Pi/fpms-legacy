@@ -5,6 +5,14 @@ If you are moving from the previous Bakebit/NanoHatOLED GitHub repos, you must a
 
 (Note this is a one-way operation - you will need to re-image your WLAN Pi if there are any issues and you wish to revert)
 
+Aditional python3 modules are required. Complete the following steps:
+
+sudo apt-get update
+sudo apt-get install python3-smbus
+sudo python3 -m pip install pillow
+
+To activate fpms:
+
 1. Edit the oled-start file : "sudo nano /usr/local/bin/oled-start"
 
     from:

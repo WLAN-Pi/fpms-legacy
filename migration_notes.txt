@@ -1,5 +1,13 @@
 Migrating from the old NanoHatOLED & BakeBit repos to the new single 'fpms' repo:
 
+Before fpms can be installed, some additional python3 modules are required. Complete the following steps:
+
+sudo apt-get update
+sudo apt-get install python3-smbus
+sudo python3 -m pip install pillow
+
+To install fpms:
+
 1. Edit the oled-start file : "sudo nano /usr/local/bin/oled-start"
 
     from:
