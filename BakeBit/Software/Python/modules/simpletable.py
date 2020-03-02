@@ -1,28 +1,22 @@
 #################################
-# Various display tables
+# Create a simpe table object
 #################################
 import bakebit_128_64_oled as oled
-from PIL import Image
-from PIL import ImageFont
-from PIL import ImageDraw
-import bakebit_128_64_oled as oled
+from textwrap import wrap
 
-from screen import *
-from navigation import *
+from modules.screen import *
+from modules.navigation import *
 
 class SimpleTable(object):
 
     def __init__(self, g_vars):
 
         # grab a screeb obj
-        self.screen_obj = Screen()
-
-        # Create image & draw objects
-        self.image = Image.new('1', (g_vars.get('width'), g_vars.get('height')))
-        self.draw = ImageDraw.Draw(self.image)
+        self.screen_obj = Screen(g_vars)
 
         # grab a navigation obj
-        self.nav_button_obj = NavButton(g_vars['draw'], g_vars['nav_bar_top'], 255, g_vars['smartFont'])
+        self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
+        self.draw = g_vars['draw']
 
     def display_simple_table(self, g_vars, item_list, back_button_req=0, title='', font="small"):
         '''
@@ -73,7 +67,7 @@ class SimpleTable(object):
             g_vars['current_scroll_selection'] -= 1
 
         # modify list to display if scrolling required
-        if g_vars['able_list_length'] > table_display_max:
+        if g_vars['table_list_length'] > table_display_max:
 
             table_bottom_entry = g_vars['current_scroll_selection'] + table_display_max
             item_list = item_list[g_vars['current_scroll_selection']: table_bottom_entry]
@@ -106,3 +100,11 @@ class SimpleTable(object):
         g_vars['drawing_in_progress'] = False
 
         return
+    
+    def display_dialog_msg(self, g_vars, msg, back_button_req=0, wrap_limit=17, font="medium"):
+        '''
+        display informational dialog box
+        '''
+
+        msg_list = wrap(msg, wrap_limit)
+        self.display_simple_table(g_vars, msg_list, back_button_req, title='Info:', font=font)

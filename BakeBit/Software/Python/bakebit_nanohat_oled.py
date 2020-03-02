@@ -87,16 +87,14 @@ import types
 import re
 from textwrap import wrap
 
+from modules.screen import *
 from modules.navigation import *
+from modules.simpletable import * 
+from modules.pagedtable import * 
+from modules.utils.speedtest import *
 
 __version__ = "0.36 (beta)"
 __author__ = "wifinigel@gmail.com"
-
-############################
-# Set display size
-############################
-width = 128
-height = 64
 
 ############################
 # Set page sleep control
@@ -115,20 +113,6 @@ oled.setHorizontalMode()
 #######################################
 # Initialize drawing & fonts variables
 #######################################
-
-# This variable is shared between activities and is set to True if a
-# drawing action in already if progress (e.g. by another activity). An activity
-# happens during each cycle of the main while loop or when a button is pressed
-# (This does not appear to be threading or process spawning)
-drawing_in_progress = False
-
-#####################################
-# Create global draw/image objects
-#####################################
-image = Image.new('1', (width, height))
-draw = ImageDraw.Draw(image)
-
-reboot_image = Image.open('reboot.png').convert('1')
 
 #######################
 # Define display fonts
@@ -157,9 +141,57 @@ table_list_length = 0         # Total length of currently displayed table
 result_cache = False          # used to cache results when paging info
 display_state = 'page'        # current display state: 'page' or 'menu'
 start_up = True               # True if in initial (home page) start-up state
-disable_keys = False          # Set to true when need to ignore key presses
-speedtest_status = False      # Indicates if speedtest has run or is in progress
-speedtest_result_text = ''    # tablulated speedtest result data
+
+g_vars = {
+
+    ############################
+    # Shared constants
+    ############################
+
+    # Set display size
+    'width': 128,
+    'height': 64,
+
+    # Set page sleep control
+    'pageSleep': pageSleep,
+    'pageSleepCountdown': pageSleepCountdown,
+
+    'nav_bar_top': nav_bar_top,              # top pixel of nav bar
+
+    # Define display fonts
+    'smartFont': smartFont,
+    'font11': font11,
+    'font12': font12,
+    'fontb12': fontb12,
+    'font14': font14,
+    'fontb14': fontb14,
+    'fontb24': fontb24,
+
+    ##################################################
+    # Shared status signals (may be changed anywhere)
+    ##################################################
+
+    # This variable is shared between activities and is set to True if a
+    # drawing action in already if progress (e.g. by another activity). An activity
+    # happens during each cycle of the main while loop or when a button is pressed
+    # (This does not appear to be threading or process spawning)
+    'drawing_in_progress': False,
+
+    'table_list_length': table_list_length,  # Total length of currently displayed table
+    'current_scroll_selection': current_scroll_selection,  # where we currently are in scrolling table
+    'display_state': display_state,     # current display state: 'page' or 'menu'
+    'start_up': start_up,            # True if in initial (home page) start-up state
+    'disable_keys': False,       # Set to true when need to ignore key presses
+    'speedtest_status': False,   # Indicates if speedtest has run or is in progress
+    'speedtest_result_text': '', # tablulated speedtest result data
+}
+
+############################
+# shared objects
+############################
+g_vars['image'] = Image.new('1', (g_vars['width'], g_vars['height']))
+g_vars['draw'] = ImageDraw.Draw(g_vars['image'])
+g_vars['reboot_image'] = Image.open('reboot.png').convert('1')
 
 #######################################
 # Initialize file variables
@@ -200,6 +232,12 @@ if os.path.isfile(hotspot_mode_file):
 if os.path.isfile(wiperf_mode_file):
     current_mode = 'wiperf'
 
+# Instantiate objects
+screen_obj = Screen(g_vars)
+simple_table_obj = SimpleTable(g_vars)
+nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
+paged_table_obj = PagedTable(g_vars)
+
 
 # get & the current version of WLANPi image
 ver_cmd = "grep \"WLAN Pi v\" /var/www/html/index.html | sed \"s/<[^>]\+>//g\""
@@ -232,257 +270,6 @@ def get_ip():
     return IP
 
 
-# Create obj for on-screen button labels
-nav_button_obj = NavButton(draw, nav_bar_top, 255, smartFont)
-
-
-##############################################
-# Page & menu functions
-##############################################
-
-
-def clear_display():
-    '''
-    Paint display black prior to painting new page
-    '''
-
-    global width
-    global height
-    global draw
-
-    # Draw a black filled box to clear the display.
-    draw.rectangle((0, 0, width, height), outline=0, fill=0)
-
-
-def display_simple_table(item_list, back_button_req=0, title='', font="small"):
-    '''
-    This function takes a list and paints each entry as a line on a
-    page. It also displays appropriate up/down scroll buttons if the
-    entries passed exceed a page length (one line at a time)
-    '''
-
-    global drawing_in_progress
-    global draw
-    global oled
-    global current_scroll_selection
-    global table_list_length
-    global display_state
-
-    drawing_in_progress = True
-    display_state = 'page'
-
-    # Clear display prior to painting new item
-    clear_display()
-
-    y = 0
-    x = 0
-    font_offset = 0
-
-    if font == "small":
-        font_type = smartFont
-        font_size = 11
-        item_length_max = 20
-        table_display_max = 5
-    elif font == "medium":
-        font_type = font11
-        font_size = 11
-        item_length_max = 17
-        table_display_max = 4
-
-    # write title if present
-    if title != '':
-        draw.text((x, y + font_offset), title.center(item_length_max,
-                                                     " "),  font=font_type, fill=255)
-        font_offset += font_size
-        table_display_max -= 1
-
-    previous_table_list_length = table_list_length
-    table_list_length = len(item_list)
-
-    # if table length changes, reset current scroll selection
-    # e.g. when showing lldp table info and eth cable
-    # pulled so list size changes
-    if table_list_length != previous_table_list_length:
-        current_scroll_selection = 0
-
-    # if we're going to scroll of the end of the list, adjust pointer
-    if current_scroll_selection + table_display_max > table_list_length:
-        current_scroll_selection -= 1
-
-    # modify list to display if scrolling required
-    if table_list_length > table_display_max:
-
-        table_bottom_entry = current_scroll_selection + table_display_max
-        item_list = item_list[current_scroll_selection: table_bottom_entry]
-
-        # show down if not at end of list in display window
-        if table_bottom_entry < table_list_length:
-            nav_button_obj.down()
-
-        # show an up button if not at start of list
-        if current_scroll_selection > 0:
-            nav_button_obj.next(label="Up")
-
-    for item in item_list:
-
-        if len(item) > item_length_max:
-            item = item[0:item_length_max]
-
-        draw.text((x, y + font_offset), item,  font=font_type, fill=255)
-
-        font_offset += font_size
-
-    # Back button
-    if back_button_req:
-        nav_button_obj.back(label="Exit")
-
-    oled.drawImage(image)
-
-    display_state = 'page'
-    drawing_in_progress = False
-
-    return
-
-
-def display_dialog_msg(msg, back_button_req=0, wrap_limit=17, font="medium"):
-    '''
-    display informational dialog box
-    '''
-
-    global draw
-    global oled
-    global drawing_in_progress
-    global display_state
-
-    msg_list = wrap(msg, wrap_limit)
-    display_simple_table(msg_list, back_button_req, title='Info:', font=font)
-
-
-def display_paged_table(table_data, back_button_req=0):
-    '''
-    This function takes several pages of information and displays on the
-    display with appropriate pg up/pg down buttons
-
-    table data is in format:
-
-    data = {
-        'title' = 'page title',
-        'pages' = [
-                ['Page 1 line 1', Page 1 line 2, 'Page 1 line 3', 'Page 1 line 4'],
-                ['Page 2 line 1', Page 2 line 2, 'Page 2 line 3', 'Page 2 line 4'],
-                ['Page 3 line 1', Page 3 line 2, 'Page 3 line 3', 'Page 3 line 4'],
-                ...etc.
-        ]
-    }
-    '''
-
-    global drawing_in_progress
-    global draw
-    global oled
-    global current_scroll_selection
-    global table_list_length
-    global display_state
-
-    drawing_in_progress = True
-    display_state = 'page'
-
-    # Clear display prior to painting new item
-    clear_display()
-
-    y = 0
-    x = 0
-    font_offset = 0
-    font_size = 11
-    item_length_max = 20
-    table_display_max = 4
-
-    # write title
-    title = table_data['title']
-    total_pages = len(table_data['pages'])
-
-    if total_pages > 1:
-        title += " ({}/{})".format(current_scroll_selection + 1, total_pages)
-
-    draw.text((x, y + font_offset), title.center(item_length_max,
-                                                 " "),  font=smartFont, fill=255)
-
-    font_offset += font_size
-
-    # Extract pages data
-    table_pages = table_data['pages']
-    page_count = len(table_pages)
-
-    # Display the page selected - correct over-shoot of page down
-    if current_scroll_selection == page_count:
-        current_scroll_selection -= 1
-
-    # Correct over-shoot of page up
-    if current_scroll_selection == -1:
-        current_scroll_selection = 0
-
-    page = table_pages[current_scroll_selection]
-
-    # If the page has greater than table_display_max entries, slice it
-    if len(page) > table_display_max:
-        page = page[0:table_display_max]
-
-    for item in page:
-
-        if len(item) > item_length_max:
-            item = item[0:item_length_max]
-
-        draw.text((x, y + font_offset), item,  font=smartFont, fill=255)
-
-        font_offset += font_size
-
-    # if we're going need to scroll through pages, create buttons
-    if (page_count > 1):
-
-        # if (current_scroll_selection < page_count) and (current_scroll_selection < page_count-1):
-        if current_scroll_selection < page_count-1:
-            nav_button_obj.down(label="PgDn")
-
-        if (current_scroll_selection > 0) and (current_scroll_selection <= page_count - 1):
-            nav_button_obj.next(label="PgUp")
-
-    # Back button
-    if back_button_req:
-        nav_button_obj.back(label="Exit")
-
-    oled.drawImage(image)
-
-    display_state = 'page'
-    drawing_in_progress = False
-
-    return
-
-
-def display_list_as_paged_table(item_list, back_button_req=0, title=''):
-    '''
-    This function builds on display_paged_table() and creates a paged display
-    from a simple list of results. This provides a better experience that the
-    simple line-by-line scrolling provided in display_simple_table()
-
-    See display_paged_table() for required data structure
-    '''
-    data = {}
-
-    data['title'] = title
-    data['pages'] = []
-
-    # slice up list in to pages
-    table_display_max = 4
-
-    counter = 0
-    while item_list:
-        slice = item_list[counter: counter+table_display_max]
-        data['pages'].append(slice)
-        item_list = item_list[counter+table_display_max:]
-
-    display_paged_table(data, back_button_req)
-
-    return
-
 ##############################################
 # Main function to draw menu navigation pages
 ##############################################
@@ -510,11 +297,11 @@ def draw_page():
     global display_state
 
     # Drawing already in progress - return
-    if drawing_in_progress:
+    if g_vars['drawing_in_progress']:
         return
 
     # signal we are drawing
-    drawing_in_progress = True
+    g_vars['drawing_in_progress'] = True
 
     ################################################
     # show menu list based on current menu position
@@ -585,10 +372,10 @@ def draw_page():
     page_title = ("[ " + page_name + " ]").center(17, " ")
 
     # Clear display prior to painting new item
-    clear_display()
+    screen_obj.clear_display(g_vars)
 
     # paint the page title
-    draw.text((1, 1), page_title,  font=fontb12, fill=255)
+    g_vars['draw'].text((1, 1), page_title,  font=fontb12, fill=255)
 
     # vertical starting point for menu (under title) & incremental offset for
     # subsequent items
@@ -624,8 +411,8 @@ def draw_page():
         # convert menu item to std width format with nav indicator
         menu_item = "{:<17}>".format(menu_item)
 
-        draw.rectangle((0, y, 127, y+y_offset), outline=0, fill=rect_fill)
-        draw.text((1, y+1), menu_item,  font=font11, fill=text_fill)
+        g_vars['draw'].rectangle((0, y, 127, y+y_offset), outline=0, fill=rect_fill)
+        g_vars['draw'].text((1, y+1), menu_item,  font=font11, fill=text_fill)
         y += y_offset
 
     # add nav buttons
@@ -637,9 +424,9 @@ def draw_page():
     else:
         nav_button_obj.back(label="Exit")
 
-    oled.drawImage(image)
+    oled.drawImage(g_vars['image'])
 
-    drawing_in_progress = False
+    g_vars['drawing_in_progress'] = False
 
 ####################################
 # dispatcher (menu) functions here
@@ -707,7 +494,8 @@ def show_summary():
     if display_state == 'menu':
         return
 
-    display_simple_table(results, back_button_req=1)
+    simple_table_obj.display_simple_table(g_vars, results, back_button_req=1)
+    #display_simple_table(results, back_button_req=1)
 
     return
 
@@ -725,27 +513,27 @@ def show_date():
     global display_state
     global drawing_in_progress
 
-    drawing_in_progress = True
+    g_vars['drawing_in_progress'] = True
 
     # Clear display prior to painting new item
-    clear_display()
+    screen_obj.clear_display(g_vars)
 
     text = time.strftime("%A")
-    draw.text((1, 0), text, font=font12, fill=255)
+    g_vars['draw'].text((1, 0), text, font=font12, fill=255)
     text = time.strftime("%e %b %Y")
-    draw.text((1, 13), text, font=font12, fill=255)
+    g_vars['draw'].text((1, 13), text, font=font12, fill=255)
     text = time.strftime("%X")
-    draw.text((1, 26), text, font=fontb14, fill=255)
+    g_vars['draw'].text((1, 26), text, font=fontb14, fill=255)
     text = time.strftime("%Z")
-    draw.text((1, 41), "TZ: " + text, font=font12, fill=255)
+    g_vars['draw'].text((1, 41), "TZ: " + text, font=font12, fill=255)
 
     # Back button
     nav_button_obj.back()
 
-    oled.drawImage(image)
+    oled.drawImage(g_vars['image'])
 
     display_state = 'page'
-    drawing_in_progress = False
+    g_vars['drawing_in_progress'] = False
 
 
 def show_interfaces():
@@ -762,7 +550,7 @@ def show_interfaces():
             ifconfig_file, shell=True).decode()
     except Exception as ex:
         interfaces = ["Err: ifconfig error", str(ex)]
-        display_simple_table(interfaces, back_button_req=1)
+        simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1)
         return
 
     # Extract interface info with a bit of regex magic
@@ -833,7 +621,7 @@ def show_wlan_interfaces():
             '{} -s'.format(ifconfig_file), shell=True).decode()
     except Exception as ex:
         interfaces = ["Err: ifconfig error", str(ex)]
-        display_simple_table(interfaces, back_button_req=1)
+        simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1)
         return
 
     # Extract interface info
@@ -918,7 +706,7 @@ def show_wlan_interfaces():
     if display_state == 'menu':
         return
 
-    display_paged_table(data, back_button_req=1)
+    paged_table_obj.display_paged_table(g_vars, data, back_button_req=1)
 
 
 def show_usb():
@@ -937,7 +725,7 @@ def show_usb():
         output = exc.output.decode()
         #error_descr = "Issue getting usb info using lsusb command"
         interfaces = ["Err: lsusb error", str(output)]
-        display_simple_table(interfaces, back_button_req=1)
+        simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1)
         return
 
     interfaces = []
@@ -956,7 +744,7 @@ def show_usb():
     if display_state == 'menu':
         return
 
-    display_simple_table(interfaces, back_button_req=1,
+    simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1,
                          title='--USB Interfaces--')
 
     return
@@ -975,7 +763,7 @@ def show_ufw():
     # check ufw is available
     if not os.path.isfile(ufw_file):
 
-        display_dialog_msg('UFW not installed', back_button_req=1)
+        simple_table_obj. display_dialog_msg(g_vars, 'UFW not installed', back_button_req=1)
 
         display_state = 'page'
         return
@@ -991,7 +779,7 @@ def show_ufw():
         except Exception as ex:
             error_descr = "Issue getting ufw info using ufw command"
             interfaces = ["Err: ufw error", error_descr, str(ex)]
-            display_simple_table(interfaces, back_button_req=1)
+            simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1)
             return
     else:
         # we must have cached results from last time
@@ -1045,7 +833,7 @@ def show_eth0_ipconfig():
         output = exc.output.decode()
         #error_descr = "Issue getting ipconfig"
         ipconfigerror = ["Err: ipconfig command error", output]
-        display_simple_table(ipconfigerror, back_button_req=1)
+        simple_table_obj.display_simple_table(g_vars, ipconfigerror, back_button_req=1)
         return
 
     if len(ipconfig_info) == 0:
@@ -1066,7 +854,7 @@ def show_eth0_ipconfig():
     if display_state == 'menu':
         return
 
-    display_simple_table(choppedoutput, back_button_req=1,
+    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
                          title='--Eth0 IP Config--')
 
     return
@@ -1092,7 +880,7 @@ def show_lldp_neighbour():
             output = exc.output.decode()
             #error_descr = "Issue getting LLDP neighbour"
             error = ["Err: Neighbour command error", output]
-            display_simple_table(error, back_button_req=1)
+            simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
             return
 
     if len(neighbour_info) == 0:
@@ -1110,7 +898,7 @@ def show_lldp_neighbour():
     if display_state == 'menu':
         return
 
-    display_simple_table(choppedoutput, back_button_req=1,
+    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
                          title='--LLDP Neighbour--')
 
 
@@ -1134,7 +922,7 @@ def show_cdp_neighbour():
             output = exc.output.decode()
             #error_descr = "Issue getting LLDP neighbour"
             error = ["Err: Neighbour command error", output]
-            display_simple_table(error, back_button_req=1)
+            simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
             return
 
     if len(neighbour_info) == 0:
@@ -1152,7 +940,7 @@ def show_cdp_neighbour():
     if display_state == 'menu':
         return
 
-    display_simple_table(choppedoutput, back_button_req=1,
+    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
                          title='--CDP Neighbour--')
 
 
@@ -1174,7 +962,7 @@ def show_reachability():
         output = exc.output.decode()
         #error_descr = "Issue getting reachability info"
         error = ["Err: Reachability command error", output]
-        display_simple_table(error, back_button_req=1)
+        simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
         return
 
     if len(reachability_info) == 0:
@@ -1192,7 +980,7 @@ def show_reachability():
     if display_state == 'menu':
         return
 
-    display_simple_table(choppedoutput, back_button_req=1,
+    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
                          title='--Reachability--')
 
 
@@ -1220,7 +1008,7 @@ def show_vlan():
             #output = exc.output.decode()
             #error_descr = "Issue getting VLAN info"
             error = ["No VLAN found"]
-            display_simple_table(error, back_button_req=1)
+            simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
             return
 
     if len(vlan_info) == 0:
@@ -1234,7 +1022,7 @@ def show_vlan():
     if display_state == 'menu':
         return
 
-    display_simple_table(vlan_info, back_button_req=1, title='--Eth0 VLAN--')
+    simple_table_obj.display_simple_table(g_vars, vlan_info, back_button_req=1, title='--Eth0 VLAN--')
 
 
 def show_wpa_passphrase():
@@ -1255,7 +1043,7 @@ def show_wpa_passphrase():
         output = exc.output.decode()
         #error_descr = "Issue getting WPA passphrase"
         swperror = ["Err: WPA passphrase", output]
-        display_simple_table(swperror, back_button_req=1)
+        simple_table_obj.display_simple_table(g_vars, swperror, back_button_req=1)
         return
 
     # final check no-one pressed a button before we render page
@@ -1270,7 +1058,7 @@ def show_wpa_passphrase():
         if len(n) > 20:
             choppedoutput.append(n[20:40])
 
-    display_simple_table(choppedoutput, back_button_req=1,
+    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
                          title='--WPA passphrase--')
 
 
@@ -1279,53 +1067,10 @@ def show_speedtest():
     Run speedtest.net speed test and format output to fit the OLED screen
     ( *** Note that speedtest_status set back to False in menu_right() *** )
     '''
-    global display_state
-    global disable_keys
-    global speedtest_status
-    global speedtest_result_text
+    speedtest_obj = Speedtest(g_vars)
+    speedtest_obj.show_speedtest(g_vars)
 
-    # Has speedtest been run already?
-    if speedtest_status == False:
 
-        # ignore any more key presses as this could cause us issues
-        disable_keys = True
-
-        display_dialog_msg(
-            'Running Speedtest. Please wait.', back_button_req=0)
-
-        speedtest_info = []
-        speedtest_cmd = "speedtest | egrep -w \"Testing from|Download|Upload\" | sed -r 's/Testing from.*?\(/My IP: /g; s/\)\.\.\.//g; s/Download/D/g; s/Upload/U/g; s/bit\/s/bps/g'"
-
-        try:
-            speedtest_output = subprocess.check_output(
-                speedtest_cmd, shell=True).decode()
-            speedtest_info = speedtest_output.split('\n')
-
-        except subprocess.CalledProcessError as exc:
-            output = exc.output.decode()
-            #error_descr = "Speedtest error"
-            error = ["Err: Speedtest error", output]
-            display_simple_table(error, back_button_req=1)
-            return
-
-        if len(speedtest_info) == 0:
-            speedtest_info.append("No output sorry")
-
-        # chop down output to fit up to 2 lines on display
-        speedtest_result_text = []
-
-        for n in speedtest_info:
-            speedtest_result_text.append(n[0:20])
-            if len(n) > 20:
-                speedtest_result_text.append(n[20:40])
-
-        speedtest_status = True
-
-    # re-enable front panel keys
-    disable_keys = False
-
-    display_simple_table(speedtest_result_text, back_button_req=1,
-                         title='--Speedtest--')
 
 
 def show_publicip():
@@ -1345,7 +1090,7 @@ def show_publicip():
         output = exc.output.decode()
         #error_descr = "Public IP Error"
         error = ["Err: Public IP", output]
-        display_simple_table(error, back_button_req=1)
+        simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
         return
 
     if len(publicip_info) == 0:
@@ -1363,7 +1108,7 @@ def show_publicip():
     if display_state == 'menu':
         return
 
-    display_simple_table(choppedoutput, back_button_req=1,
+    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
                          title='--Public IP Address--')
     time.sleep(10)
 
@@ -1372,7 +1117,7 @@ def show_menu_ver():
 
     global __version__
 
-    display_simple_table(["Menu version:", __version__],
+    simple_table_obj.display_simple_table(g_vars, ["Menu version:", __version__],
                          back_button_req=1, font="medium")
 
 
@@ -1382,7 +1127,7 @@ def shutdown():
     global shutdown_in_progress
     global screen_cleared
 
-    display_dialog_msg('Shutting down...', back_button_req=0)
+    simple_table_obj. display_dialog_msg(g_vars, 'Shutting down...', back_button_req=0)
     time.sleep(1)
 
     oled.clearDisplay()
@@ -1400,10 +1145,10 @@ def reboot():
     global screen_cleared
     global reboot_image
 
-    display_dialog_msg('Rebooting...', back_button_req=0)
+    simple_table_obj. display_dialog_msg(g_vars, 'Rebooting...', back_button_req=0)
     time.sleep(1)
 
-    oled.drawImage(reboot_image)
+    oled.drawImage(g_vars['reboot_image'])
 
     screen_cleared = True
 
@@ -1427,7 +1172,7 @@ def switcher(resource_title, resource_switcher_file, mode_name):
     # check resource is available
     if not os.path.isfile(resource_switcher_file):
 
-        display_dialog_msg('{} not available'.format(
+        simple_table_obj. display_dialog_msg(g_vars, '{} not available'.format(
             resource_title), back_button_req=1)
         display_state = 'page'
         return
@@ -1449,11 +1194,11 @@ def switcher(resource_title, resource_switcher_file, mode_name):
         return False
 
     # Flip the mode
-    display_dialog_msg(dialog_msg, back_button_req)
+    simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req)
     shutdown_in_progress = True
     time.sleep(2)
 
-    oled.drawImage(reboot_image)
+    oled.drawImage(g_vars['reboot_image'])
     screen_cleared = True
 
     try:
@@ -1467,7 +1212,7 @@ def switcher(resource_title, resource_switcher_file, mode_name):
     # (Note that the switcher script reboots the WLANPi)
     shutdown_in_progress = False
     screen_cleared = False
-    display_dialog_msg("Switch failed: {}".format(
+    simple_table_obj. display_dialog_msg(g_vars, "Switch failed: {}".format(
         dialog_msg), back_button_req=0)
     display_state = 'menu'
 
@@ -1527,7 +1272,7 @@ def kismet_ctl(action="status"):
 
     # check resource is available
     if not os.path.isfile(kismet_ctl_file):
-        display_dialog_msg('{} not available'.format(
+        simple_table_obj. display_dialog_msg(g_vars, '{} not available'.format(
             kismet_ctl_file), back_button_req=1)
         display_state = 'page'
         return
@@ -1557,7 +1302,7 @@ def kismet_ctl(action="status"):
             output = exc.output.decode()
             dialog_msg = 'Stop failed! {}'.format(output)
 
-    display_dialog_msg(dialog_msg, back_button_req=1)
+    simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
     display_state = 'page'
     return True
 
@@ -1587,7 +1332,7 @@ def bettercap_ctl(action="status"):
 
     # check resource is available
     if not os.path.isfile(bettercap_ctl_file):
-        display_dialog_msg('{} not available'.format(
+        simple_table_obj. display_dialog_msg(g_vars, '{} not available'.format(
             bettercap_ctl_file), back_button_req=1)
         display_state = 'page'
         return
@@ -1617,7 +1362,7 @@ def bettercap_ctl(action="status"):
             output = exc.output.decode()
             dialog_msg = 'Stop failed! {}'.format(output)
 
-    display_dialog_msg(dialog_msg, back_button_req=1)
+    simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
     display_state = 'page'
     return True
 
@@ -1647,7 +1392,7 @@ def profiler_ctl(action="status"):
 
     # check resource is available
     if not os.path.isfile(profiler_ctl_file):
-        display_dialog_msg('not available: {}'.format(
+        simple_table_obj. display_dialog_msg(g_vars, 'not available: {}'.format(
             profiler_ctl_file), back_button_req=1)
         display_state = 'page'
         return
@@ -1662,7 +1407,7 @@ def profiler_ctl(action="status"):
             output = exc.output.decode()
             item_list = ['Status failed!', str(output)]
 
-        display_simple_table(item_list, back_button_req=1,
+        simple_table_obj.display_simple_table(g_vars, item_list, back_button_req=1,
                              title='Profiler Status')
         display_state = 'page'
         return True
@@ -1699,7 +1444,7 @@ def profiler_ctl(action="status"):
             output = exc.output.decode()
             dialog_msg = 'Report purge failed! {}'.format(output)
 
-    display_dialog_msg(dialog_msg, back_button_req=1)
+    simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
     display_state = 'page'
     return True
 
@@ -1757,7 +1502,7 @@ def home_page():
     global display_state
     global ethtool_file
 
-    drawing_in_progress = True
+    g_vars['drawing_in_progress'] = True
     display_state = 'page'
 
     if current_mode == "wconsole":
@@ -1818,16 +1563,16 @@ def home_page():
     except Exception as ex:
         ip_addr = "No IP Addr"
 
-    clear_display()
-    draw.text((0, 1), str(wlanpi_ver), font=smartFont, fill=255)
-    draw.text((0, 11), str(hostname), font=font11, fill=255)
-    draw.text((95, 20), if_name, font=smartFont, fill=255)
-    draw.text((0, 29), str(ip_addr), font=font14, fill=255)
-    draw.text((0, 43), str(mode_name), font=smartFont, fill=255)
+    screen_obj.clear_display(g_vars)
+    g_vars['draw'].text((0, 1), str(wlanpi_ver), font=smartFont, fill=255)
+    g_vars['draw'].text((0, 11), str(hostname), font=font11, fill=255)
+    g_vars['draw'].text((95, 20), if_name, font=smartFont, fill=255)
+    g_vars['draw'].text((0, 29), str(ip_addr), font=font14, fill=255)
+    g_vars['draw'].text((0, 43), str(mode_name), font=smartFont, fill=255)
     nav_button_obj.back('Menu')
-    oled.drawImage(image)
+    oled.drawImage(g_vars['image'])
 
-    drawing_in_progress = False
+    g_vars['drawing_in_progress'] = False
     return
 
 #######################
@@ -1845,7 +1590,7 @@ def wifi_client_count():
         output = exc.output.decode()
         #error_descr = "Issue getting number of  Wi-Fi clients"
         wccerror = ["Err: Wi-Fi client count", str(output)]
-        display_simple_table(wccerror, back_button_req=1)
+        simple_table_obj.display_simple_table(g_vars, wccerror, back_button_req=1)
         return
 
     return client_count.strip()
@@ -1875,7 +1620,7 @@ def menu_down():
     draw_page()
 
 
-def menu_right():
+def menu_right(g_vars=g_vars):
 
     global current_menu_location
     global menu
@@ -1886,7 +1631,7 @@ def menu_right():
     global speedtest_status
 
     # make sure we know speedtest is done
-    speedtest_status = False
+    g_vars['speedtest_status'] = False
 
     # If we are in a table, scroll up (unless at top of list)
     if display_state == 'page':
@@ -2084,7 +1829,7 @@ if current_mode != "classic":
 # Set up handlers to process key presses
 
 
-def receive_signal(signum, stack):
+def receive_signal(signum, stack, g_vars=g_vars):
 
     global pageSleepCountdown
     global pageSleep
@@ -2095,7 +1840,7 @@ def receive_signal(signum, stack):
     global start_up
     global disable_keys
 
-    if disable_keys:
+    if g_vars['disable_keys'] == True:
         # someone disabled the front panel keys as they don't want to be interrupted
         return
 
@@ -2108,7 +1853,7 @@ def receive_signal(signum, stack):
 
     start_up = False
 
-    if drawing_in_progress or shutdown_in_progress:
+    if g_vars['drawing_in_progress'] or shutdown_in_progress:
         return
 
     # if display has been switched off to save screen, power back on and show home menu
@@ -2178,9 +1923,10 @@ signal.signal(signal.SIGALRM, receive_signal)
 # IDs when different parts of the script are executing.
 ##############################################################################
 while True:
+
     try:
 
-        if shutdown_in_progress or screen_cleared or drawing_in_progress:
+        if shutdown_in_progress or screen_cleared or g_vars['drawing_in_progress']:
 
             # we don't really want to do anything at the moment, lets
             # nap and loop around

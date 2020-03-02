@@ -5,15 +5,15 @@
 
 class NavButton(object):
 
-    def __init__(self, draw_obj, nav_bar_top, fill, font):
-
-        self.draw = draw_obj
-        self.nav_bar_top = nav_bar_top
+    def __init__(self, g_vars, fill, font):
+       
+        self.nav_bar_top = g_vars.get('nav_bar_top')
         self.font = font
         self.fill = fill
+        self.g_vars = g_vars
 
     def render_button(self, label, position):
-        self.draw.text((position, self.nav_bar_top), label, self.fill, self.font)
+        self.g_vars['draw'].text((position, self.nav_bar_top), label, fill=self.fill, font=self.font)
         return
 
 
