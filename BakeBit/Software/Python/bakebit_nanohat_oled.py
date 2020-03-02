@@ -89,8 +89,8 @@ from textwrap import wrap
 
 from modules.screen import *
 from modules.navigation import *
-from modules.simpletable import * 
-from modules.pagedtable import * 
+from modules.tables.simpletable import * 
+from modules.tables.pagedtable import * 
 from modules.utils.speedtest import *
 
 __version__ = "0.36 (beta)"
@@ -131,7 +131,6 @@ fontb24 = ImageFont.truetype('DejaVuSansMono-Bold.ttf', 24)
 shutdown_in_progress = False  # True when shutdown or reboot started
 screen_cleared = False        # True when display cleared (e.g. screen save)
 current_menu_location = [0]   # Pointer to current location in menu structure
-option_selected = 0           # Content of currently selected menu level
 sig_fired = False             # Set to True when button handler fired
 home_page_name = "Home"       # Display name for top level menu
 current_mode = "classic"      # Currently selected mode (e.g. wconsole/classic)
@@ -176,7 +175,8 @@ g_vars = {
     # happens during each cycle of the main while loop or when a button is pressed
     # (This does not appear to be threading or process spawning)
     'drawing_in_progress': False,
-
+    
+    'option_selected': 0,        # Content of currently selected menu level
     'table_list_length': table_list_length,  # Total length of currently displayed table
     'current_scroll_selection': current_scroll_selection,  # where we currently are in scrolling table
     'display_state': display_state,     # current display state: 'page' or 'menu'
@@ -290,7 +290,6 @@ def draw_page():
     global height
     global pageSleepCountdown
     global current_menu_location
-    global option_selected
     global option_number_selected
     global menu
     global home_page_name
@@ -359,8 +358,8 @@ def draw_page():
         # move down to next level of menu structure & repeat for new level
         menu_structure = menu_structure[node]['action']
 
-    option_number_selected = node
-    option_selected = menu_structure
+    g_vars['option_number_selected'] = node
+    g_vars['option_selected'] = menu_structure
 
     # if we're at the top of the menu tree, show the home page title
     if depth == 1:
@@ -389,9 +388,9 @@ def draw_page():
     if (len(menu_list) > table_window):
 
         # We've got more items than we can fit in our window, need to slice to fit
-        if (option_number_selected >= table_window):
+        if (g_vars['option_number_selected'] >= table_window):
             menu_list = menu_list[(
-                option_number_selected - (table_window - 1)): option_number_selected + 1]
+                g_vars['option_number_selected'] - (table_window - 1)): g_vars['option_number_selected'] + 1]
         else:
             # We have enough space for the menu items, so no special treatment required
             menu_list = menu_list[0: table_window]
@@ -603,7 +602,7 @@ def show_interfaces():
     if display_state == 'menu':
         return
 
-    display_list_as_paged_table(
+    paged_table_obj.display_list_as_paged_table(
         interfaces, back_button_req=1, title="--Interfaces--")
 
 
@@ -810,7 +809,7 @@ def show_ufw():
     if display_state == 'menu':
         return
 
-    display_list_as_paged_table(
+    paged_table_obj.display_list_as_paged_table(
         port_entries, back_button_req=1, title='--UFW Summary--')
 
     return
@@ -1624,8 +1623,6 @@ def menu_right(g_vars=g_vars):
 
     global current_menu_location
     global menu
-    global option_number_selected
-    global option_selected
     global current_scroll_selection
     global display_state
     global speedtest_status
@@ -1645,21 +1642,19 @@ def menu_right(g_vars=g_vars):
     # array or a function.
 
     # if we have an array, append the current selection and re-draw menu
-    if (type(option_selected) is list):
+    if (type(g_vars['option_selected']) is list):
         current_menu_location.append(0)
         draw_page()
-    elif (isinstance(option_selected, types.FunctionType)):
+    elif (isinstance(g_vars['option_selected'], types.FunctionType)):
         # if we have a function (dispatcher), execute it
         display_state = 'page'
-        option_selected()
+        g_vars['option_selected']()
 
 
 def menu_left():
 
     global current_menu_location
     global menu
-    global option_number_selected
-    global option_selected
     global current_scroll_selection
     global table_list_length
     global result_cache
@@ -1939,10 +1934,10 @@ while True:
 
             # if we've just booted up, show home page
             if start_up == True:
-                option_selected = home_page
+                g_vars['option_selected'] = home_page
 
              # Re-run current action to refresh screen
-            option_selected()
+            g_vars['option_selected']()
         else:
             # lets try drawing our page (or refresh if already painted)
             draw_page()
