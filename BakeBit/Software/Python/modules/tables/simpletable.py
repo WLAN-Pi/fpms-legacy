@@ -4,7 +4,7 @@
 import bakebit_128_64_oled as oled
 from textwrap import wrap
 
-from modules.screen import *
+from modules.pages.screen import *
 from modules.navigation import *
 
 class SimpleTable(object):

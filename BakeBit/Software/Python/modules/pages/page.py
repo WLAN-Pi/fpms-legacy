@@ -3,7 +3,7 @@
 #################################################
 import bakebit_128_64_oled as oled
 
-from modules.screen import *
+from modules.pages.screen import *
 from modules.navigation import *
 
 class Page(object):
@@ -16,10 +16,7 @@ class Page(object):
         # grab a navigation obj
         self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
 
-    def draw_page(self, g_vars):
-
-        global menu
-        global home_page_name
+    def draw_page(self, g_vars, menu):
 
         # Drawing already in progress - return
         if g_vars['drawing_in_progress']:
@@ -38,7 +35,7 @@ class Page(object):
         menu_structure = menu
         location_search = []
         depth = 0
-        section_name = [home_page_name]
+        section_name = [g_vars['home_page_name']]
 
         # Crawl the menu structure until we hit the current specified location
         while g_vars['current_menu_location'] != location_search:
@@ -89,7 +86,7 @@ class Page(object):
 
         # if we're at the top of the menu tree, show the home page title
         if depth == 1:
-            page_name = home_page_name
+            page_name = g_vars['home_page_name']
         else:
             # otherwise show the name of the parent menu item
             page_name = section_name[-2]
@@ -97,7 +94,7 @@ class Page(object):
         page_title = ("[ " + page_name + " ]").center(17, " ")
 
         # Clear display prior to painting new item
-        screen_obj.clear_display(g_vars)
+        self.screen_obj.clear_display(g_vars)
 
         # paint the page title
         g_vars['draw'].text((1, 1), page_title,  font=g_vars['fontb12'], fill=255)
@@ -141,13 +138,13 @@ class Page(object):
             y += y_offset
 
         # add nav buttons
-        nav_button_obj.down()
-        nav_button_obj.next()
+        self.nav_button_obj.down()
+        self.nav_button_obj.next()
         # Don't show back button at top level of menu
         if depth != 1:
-            nav_button_obj.back()
+            self.nav_button_obj.back()
         else:
-            nav_button_obj.back(label="Exit")
+            self.nav_button_obj.back(label="Exit")
 
         oled.drawImage(g_vars['image'])
 

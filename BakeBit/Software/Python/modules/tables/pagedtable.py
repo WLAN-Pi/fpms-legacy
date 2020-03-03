@@ -3,7 +3,7 @@
 #################################
 import bakebit_128_64_oled as oled
 
-from modules.screen import *
+from modules.pages.screen import *
 from modules.navigation import *
 
 class PagedTable(object):

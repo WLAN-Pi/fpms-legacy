@@ -87,11 +87,15 @@ import types
 import re
 from textwrap import wrap
 
-from modules.screen import *
+from modules.pages.screen import *
 from modules.navigation import *
 from modules.tables.simpletable import * 
 from modules.tables.pagedtable import * 
-from modules.utils.speedtest import *
+from modules.utils import *
+from modules.pages.page import *
+from modules.system.system import *
+from modules.network import *
+from modules.pages.homepage import *
 
 __version__ = "0.36 (beta)"
 __author__ = "wifinigel@gmail.com"
@@ -111,35 +115,8 @@ oled.setNormalDisplay()
 oled.setHorizontalMode()
 
 #######################################
-# Initialize drawing & fonts variables
-#######################################
-
-#######################
-# Define display fonts
-#######################
-smartFont = ImageFont.truetype('DejaVuSansMono-Bold.ttf', 10)
-font11 = ImageFont.truetype('DejaVuSansMono.ttf', 11)
-font12 = ImageFont.truetype('DejaVuSansMono.ttf', 12)
-fontb12 = ImageFont.truetype('DejaVuSansMono-Bold.ttf', 12)
-font14 = ImageFont.truetype('DejaVuSansMono.ttf', 14)
-fontb14 = ImageFont.truetype('DejaVuSansMono-Bold.ttf', 14)
-fontb24 = ImageFont.truetype('DejaVuSansMono-Bold.ttf', 24)
-
-#######################################
 # Initialize various global variables
 #######################################
-shutdown_in_progress = False  # True when shutdown or reboot started
-screen_cleared = False        # True when display cleared (e.g. screen save)
-current_menu_location = [0]   # Pointer to current location in menu structure
-sig_fired = False             # Set to True when button handler fired
-home_page_name = "Home"       # Display name for top level menu
-current_mode = "classic"      # Currently selected mode (e.g. wconsole/classic)
-nav_bar_top = 55              # top pixel of nav bar
-current_scroll_selection = 0  # where we currently are in scrolling table
-table_list_length = 0         # Total length of currently displayed table
-result_cache = False          # used to cache results when paging info
-display_state = 'page'        # current display state: 'page' or 'menu'
-start_up = True               # True if in initial (home page) start-up state
 
 g_vars = {
 
@@ -155,16 +132,18 @@ g_vars = {
     'pageSleep': pageSleep,
     'pageSleepCountdown': pageSleepCountdown,
 
-    'nav_bar_top': nav_bar_top,              # top pixel of nav bar
+    'nav_bar_top': 55,     # top pixel of nav bar
+    'home_page_name': "Home",       # Display name for top level menu
+    'menu_version': __version__,   # fpms version
 
     # Define display fonts
-    'smartFont': smartFont,
-    'font11': font11,
-    'font12': font12,
-    'fontb12': fontb12,
-    'font14': font14,
-    'fontb14': fontb14,
-    'fontb24': fontb24,
+    'smartFont': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 10),
+    'font11': ImageFont.truetype('DejaVuSansMono.ttf', 11),
+    'font12': ImageFont.truetype('DejaVuSansMono.ttf', 12),
+    'fontb12': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 12),
+    'font14': ImageFont.truetype('DejaVuSansMono.ttf', 14),
+    'fontb14': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 14),
+    'fontb24': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 24),
 
     ##################################################
     # Shared status signals (may be changed anywhere)
@@ -174,16 +153,52 @@ g_vars = {
     # drawing action in already if progress (e.g. by another activity). An activity
     # happens during each cycle of the main while loop or when a button is pressed
     # (This does not appear to be threading or process spawning)
-    'drawing_in_progress': False,
-    
+
+    'shutdown_in_progress': False,  # True when shutdown or reboot started
+    'drawing_in_progress': False, # True when page being painted on screen
+    'screen_cleared': False,        # True when display cleared (e.g. screen save)
+    'display_state': 'page',        # current display state: 'page' or 'menu'
+    'sig_fired': False,             # Set to True when button handler fired 
     'option_selected': 0,        # Content of currently selected menu level
-    'table_list_length': table_list_length,  # Total length of currently displayed table
-    'current_scroll_selection': current_scroll_selection,  # where we currently are in scrolling table
-    'display_state': display_state,     # current display state: 'page' or 'menu'
-    'start_up': start_up,            # True if in initial (home page) start-up state
+    'current_menu_location': [0],   # Pointer to current location in menu structure
+    'current_scroll_selection': 0,  # where we currently are in scrolling table
+    'current_mode': 'classic',      # Currently selected mode (e.g. wconsole/classic)
+    'start_up': True,            # True if in initial (home page) start-up state
     'disable_keys': False,       # Set to true when need to ignore key presses
+    'table_list_length': 0,         # Total length of currently displayed table
+    'result_cache': False,          # used to cache results when paging info
     'speedtest_status': False,   # Indicates if speedtest has run or is in progress
     'speedtest_result_text': '', # tablulated speedtest result data
+
+    #######################################
+    # Initialize file variables
+    #######################################
+    # Mode changer scripts
+    'wconsole_mode_file': '/etc/wconsole/wconsole.on',
+    'hotspot_mode_file': '/etc/wlanpihotspot/hotspot.on',
+    'wiperf_mode_file': '/home/wlanpi/wiperf/wiperf.on',
+
+    'wconsole_switcher_file': '/etc/wconsole/wconsole_switcher',
+    'hotspot_switcher_file': '/etc/wlanpihotspot/hotspot_switcher',
+    'wiperf_switcher_file': '/home/wlanpi/wiperf/wiperf_switcher',
+
+    # helper scripts to launch misc processes
+    'kismet_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/kismet_ctl',
+    'bettercap_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/bettercap_ctl',
+    'profiler_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/profiler_ctl',
+
+    # cdp and lldp networkinfo data file names
+    'lldpneigh_file': '/tmp/lldpneigh.txt',
+    'cdpneigh_file': '/tmp/cdpneigh.txt',
+    'ipconfig_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/ipconfig.sh 2>/dev/null',
+    'reachability_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/reachability.sh',
+    'publicip_cmd': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/publicip.sh',
+
+    # Linux programs
+    'ifconfig_file':'/sbin/ifconfig',
+    'iw_file': '/usr/sbin/iw',
+    'ufw_file': '/usr/sbin/ufw',
+    'ethtool_file': '/sbin/ethtool',
 }
 
 ############################
@@ -226,935 +241,28 @@ ethtool_file = '/sbin/ethtool'
 
 # check our current mode
 if os.path.isfile(wconsole_mode_file):
-    current_mode = 'wconsole'
+    g_vars['current_mode'] = 'wconsole'
 if os.path.isfile(hotspot_mode_file):
-    current_mode = 'hotspot'
+    g_vars['current_mode'] = 'hotspot'
 if os.path.isfile(wiperf_mode_file):
-    current_mode = 'wiperf'
-
-# Instantiate objects
-screen_obj = Screen(g_vars)
-simple_table_obj = SimpleTable(g_vars)
-nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
-paged_table_obj = PagedTable(g_vars)
-
+    g_vars['current_mode'] = 'wiperf'
 
 # get & the current version of WLANPi image
 ver_cmd = "grep \"WLAN Pi v\" /var/www/html/index.html | sed \"s/<[^>]\+>//g\""
 try:
-    wlanpi_ver = subprocess.check_output(ver_cmd, shell=True).decode().strip()
+    g_vars['wlanpi_ver'] = subprocess.check_output(ver_cmd, shell=True).decode().strip()
 except:
-    wlanpi_ver = "unknown"
+    g_vars['wlanpi_ver'] = "unknown"
 
 # get hostname
 try:
-    hostname = subprocess.check_output('hostname', shell=True).decode()
+    g_vars['hostname'] = subprocess.check_output('hostname', shell=True).decode()
 except:
-    hostname = "unknown"
-
-#############################
-# Get current IP for display
-#############################
-
-
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
-
-
-##############################################
-# Main function to draw menu navigation pages
-##############################################
-
-
-def draw_page():
-    global drawing_in_progress
-    global image
-    global draw
-    global oled
-    global font
-    global fontb12
-    global font14
-    global smartFont
-    global width
-    global height
-    global width
-    global height
-    global pageSleepCountdown
-    global current_menu_location
-    global option_number_selected
-    global menu
-    global home_page_name
-    global display_state
-
-    # Drawing already in progress - return
-    if g_vars['drawing_in_progress']:
-        return
-
-    # signal we are drawing
-    g_vars['drawing_in_progress'] = True
-
-    ################################################
-    # show menu list based on current menu position
-    ################################################
-
-    # FIXME: This feels clunky. Would be best to access menu locations
-    #       via evaluated location rather than crawling over menu
-
-    menu_structure = menu
-    location_search = []
-    depth = 0
-    section_name = [home_page_name]
-
-    # Crawl the menu structure until we hit the current specified location
-    while current_menu_location != location_search:
-
-        # List that will be used to build menu items to display
-        menu_list = []
-
-        # Current menu location choice specified in list format:
-        #  current_menu_location = [2,1]
-        #
-        # As we move though menu depths, inpsect next level of
-        # menu structure
-        node = current_menu_location[depth]
-
-        # figure out the number of menu options at this menu level
-        number_menu_choices = len(menu_structure)
-
-        if node == number_menu_choices:
-
-            # we've fallen off the end of menu choices, fix item by zeroing
-            node = 0
-            current_menu_location[depth] = 0
-
-        location_search.append(node)
-
-        item_counter = 0
-
-        for menu_item in menu_structure:
-
-            item_name = menu_item['name']
-
-            # this is the currently selected item, pre-pend name with '*'
-            if (item_counter == node):
-                section_name.append(item_name)
-                item_name = "*" + item_name
-
-            menu_list.append((item_name))
-
-            item_counter = item_counter + 1
-
-        depth = depth + 1
-
-        # move down to next level of menu structure & repeat for new level
-        menu_structure = menu_structure[node]['action']
-
-    g_vars['option_number_selected'] = node
-    g_vars['option_selected'] = menu_structure
-
-    # if we're at the top of the menu tree, show the home page title
-    if depth == 1:
-        page_name = home_page_name
-    else:
-        # otherwise show the name of the parent menu item
-        page_name = section_name[-2]
-
-    page_title = ("[ " + page_name + " ]").center(17, " ")
-
-    # Clear display prior to painting new item
-    screen_obj.clear_display(g_vars)
-
-    # paint the page title
-    g_vars['draw'].text((1, 1), page_title,  font=fontb12, fill=255)
-
-    # vertical starting point for menu (under title) & incremental offset for
-    # subsequent items
-    y = 15
-    y_offset = 13
-
-    # define display window limit for menu table
-    table_window = 3
-
-    # determine the menu list to show based on current selection and window limits
-    if (len(menu_list) > table_window):
-
-        # We've got more items than we can fit in our window, need to slice to fit
-        if (g_vars['option_number_selected'] >= table_window):
-            menu_list = menu_list[(
-                g_vars['option_number_selected'] - (table_window - 1)): g_vars['option_number_selected'] + 1]
-        else:
-            # We have enough space for the menu items, so no special treatment required
-            menu_list = menu_list[0: table_window]
-
-    # paint the menu items, highlighting selected menu item
-    for menu_item in menu_list:
-
-        rect_fill = 0
-        text_fill = 255
-
-        # this is selected menu item: highlight it and remove * character
-        if (menu_item[0] == '*'):
-            rect_fill = 255
-            text_fill = 0
-            menu_item = menu_item[1:len(menu_item)]
-
-        # convert menu item to std width format with nav indicator
-        menu_item = "{:<17}>".format(menu_item)
-
-        g_vars['draw'].rectangle((0, y, 127, y+y_offset), outline=0, fill=rect_fill)
-        g_vars['draw'].text((1, y+1), menu_item,  font=font11, fill=text_fill)
-        y += y_offset
-
-    # add nav buttons
-    nav_button_obj.down()
-    nav_button_obj.next()
-    # Don't show back button at top level of menu
-    if depth != 1:
-        nav_button_obj.back()
-    else:
-        nav_button_obj.back(label="Exit")
-
-    oled.drawImage(g_vars['image'])
-
-    g_vars['drawing_in_progress'] = False
+    g_vars['hostname']
 
 ####################################
 # dispatcher (menu) functions here
 ####################################
-
-
-def show_summary():
-    '''
-    Summary page - taken from original bakebit script
-    '''
-
-    global width
-    global height
-    global draw
-    global oled
-    global display_state
-    global drawing_in_progress
-
-    # The commands here take quite a while to execute, so lock screen early
-    # (normally done by page drawing function)
-    drawing_in_progress = True
-
-    IPAddress = get_ip()
-
-    # determine CPU load
-    cmd = "top -bn1 | grep load | awk '{printf \"CPU Load: %.2f\", $(NF-2)}'"
-    try:
-        CPU = subprocess.check_output(cmd, shell=True).decode()
-    except:
-        CPU = "unknown"
-
-    # determine mem useage
-    cmd = "free -m | awk 'NR==2{printf \"Mem: %s/%sMB %.2f%%\", $3,$2,$3*100/$2 }'"
-    try:
-        MemUsage = subprocess.check_output(cmd, shell=True).decode()
-    except:
-        MemUsage = "unknown"
-
-    # determine disk util
-    cmd = "df -h | awk '$NF==\"/\"{printf \"Disk: %d/%dGB %s\", $3,$2,$5}'"
-    try:
-        Disk = subprocess.check_output(cmd, shell=True).decode()
-    except:
-        Disk = "unknown"
-
-    # determine temp
-    try:
-        tempI = int(open('/sys/class/thermal/thermal_zone0/temp').read())
-    except:
-        tempI = "unknown"
-
-    if tempI > 1000:
-        tempI = tempI/1000
-    tempStr = "CPU TEMP: %sC" % str(tempI)
-
-    results = [
-        "IP: " + str(IPAddress),
-        str(CPU),
-        str(MemUsage),
-        str(Disk),
-        tempStr
-    ]
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    simple_table_obj.display_simple_table(g_vars, results, back_button_req=1)
-    #display_simple_table(results, back_button_req=1)
-
-    return
-
-
-def show_date():
-    '''
-    Date page - taken from original bakebit script & modified to add TZ
-
-    '''
-
-    global width
-    global height
-    global draw
-    global oled
-    global display_state
-    global drawing_in_progress
-
-    g_vars['drawing_in_progress'] = True
-
-    # Clear display prior to painting new item
-    screen_obj.clear_display(g_vars)
-
-    text = time.strftime("%A")
-    g_vars['draw'].text((1, 0), text, font=font12, fill=255)
-    text = time.strftime("%e %b %Y")
-    g_vars['draw'].text((1, 13), text, font=font12, fill=255)
-    text = time.strftime("%X")
-    g_vars['draw'].text((1, 26), text, font=fontb14, fill=255)
-    text = time.strftime("%Z")
-    g_vars['draw'].text((1, 41), "TZ: " + text, font=font12, fill=255)
-
-    # Back button
-    nav_button_obj.back()
-
-    oled.drawImage(g_vars['image'])
-
-    display_state = 'page'
-    g_vars['drawing_in_progress'] = False
-
-
-def show_interfaces():
-    '''
-    Return a list of network interfaces found to be up, with IP address if available
-    '''
-
-    global ifconfig_file
-    global iw_file
-    global display_state
-
-    try:
-        ifconfig_info = subprocess.check_output(
-            ifconfig_file, shell=True).decode()
-    except Exception as ex:
-        interfaces = ["Err: ifconfig error", str(ex)]
-        simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1)
-        return
-
-    # Extract interface info with a bit of regex magic
-    interface_re = re.findall(
-        r'^(\w+?)\: flags(.*?)RX packets', ifconfig_info, re.DOTALL | re.MULTILINE)
-    if interface_re is None:
-        # Something broke is our regex - report an issue
-        interfaces = ["Error: match error"]
-    else:
-        interfaces = []
-        for result in interface_re:
-
-            # save the interface name
-            interface_name = result[0]
-            if re.match(r'^eth', interface_name):
-                interface_name = "e{}".format(interface_name[-1])
-            elif re.match(r'^wlan', interface_name):
-                interface_name = "w{}".format(interface_name[-1])
-            elif re.match(r'^usb', interface_name):
-                interface_name = "u{}".format(interface_name[-1])
-            elif re.match(r'^zt', interface_name):
-                interface_name = "zt"
-
-            # look at the rest of the interface info & extract IP if available
-            interface_info = result[1]
-
-            inet_search = re.search(
-                "inet (.+?) ", interface_info, re.MULTILINE)
-            if inet_search is None:
-                ip_address = "No IP address"
-
-                # do check if this is an interface in monitor mode
-                if (re.search(r"wlan\d", interface_name, re.MULTILINE)):
-
-                    # fire up 'iw' for this interface (hmmm..is this a bit of an un-necessary ovehead?)
-                    try:
-                        iw_info = subprocess.check_output(
-                            '{} {} info'.format(iw_file, interface_name), shell=True).decode()
-
-                        if re.search("type monitor", iw_info, re.MULTILINE):
-                            ip_address = "(Monitor)"
-                    except:
-                        ip_address = "unknown"
-            else:
-                ip_address = inet_search.group(1)
-
-            interfaces.append('{}: {}'.format(interface_name, ip_address))
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    paged_table_obj.display_list_as_paged_table(
-        interfaces, back_button_req=1, title="--Interfaces--")
-
-
-def show_wlan_interfaces():
-    '''
-    Create pages to summarise WLAN interface info
-    '''
-
-    global ifconfig_file
-    global iw_file
-    global display_state
-
-    try:
-        ifconfig_info = subprocess.check_output(
-            '{} -s'.format(ifconfig_file), shell=True).decode()
-    except Exception as ex:
-        interfaces = ["Err: ifconfig error", str(ex)]
-        simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1)
-        return
-
-    # Extract interface info
-    interface_re = re.findall(
-        r'^(wlan\d)  ', ifconfig_info, re.DOTALL | re.MULTILINE)
-    if interface_re is None:
-        interfaces = ["Error: match error"]
-    else:
-
-        interfaces = []
-        for interface_name in interface_re:
-
-            interface_info = []
-
-            # use iw to find further info for each wlan interface
-            try:
-                iw_info = subprocess.check_output(
-                    "{} {} info".format(iw_file, interface_name), shell=True).decode()
-            except:
-                iw_info = "Err: iw cmd failed"
-
-            # split the output in to an array
-            iw_list = iw_info.split('\n')
-
-            interface_details = {}
-
-            for iw_item in iw_list:
-
-                iw_item = iw_item.strip()
-
-                fields = iw_item.split()
-
-                # skip empty lines
-                if not fields:
-                    continue
-
-                interface_details[fields[0]] = fields[1:]
-
-            # construct our page data - start with name
-            interface_info.append("Interface: " + interface_name)
-
-            # SSID (if applicable)
-            if 'ssid' in interface_details.keys():
-                interface_info.append(
-                    "SSID: " + str(interface_details['ssid'][0]))
-            else:
-                interface_info.append("SSID: N/A")
-
-            # Mode
-            if 'type' in interface_details.keys():
-                interface_info.append(
-                    "Mode: " + str(interface_details['type'][0]))
-            else:
-                interface_info.append("Mode: N/A")
-
-            # Channel
-            if 'channel' in interface_details.keys():
-                interface_info.append("Ch: {} ({}Mhz)".format(
-                    str(interface_details['channel'][0]), str(interface_details['channel'][4])))
-            else:
-                interface_info.append("Ch: unknown")
-
-            # MAC
-            if 'addr' in interface_details.keys():
-                interface_info.append(
-                    "Addr: " + str(interface_details['addr']))
-            else:
-                interface_info.append("Addr: unknown")
-
-            interfaces.append(interface_info)
-
-        # if we had no WLAN interfaces, insert message
-        if len(interfaces) == 0:
-            interfaces.append(['No Wlan Interfaces'])
-
-    data = {
-        'title': '--WLAN I/F--',
-        'pages': interfaces
-    }
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    paged_table_obj.display_paged_table(g_vars, data, back_button_req=1)
-
-
-def show_usb():
-    '''
-    Return a list of non-Linux USB interfaces found with the lsusb command
-    '''
-    global display_state
-
-    lsusb = r'/usr/bin/lsusb | /bin/grep -v Linux | /usr/bin/cut -d\  -f7-'
-    lsusb_info = []
-
-    try:
-        lsusb_output = subprocess.check_output(lsusb, shell=True).decode()
-        lsusb_info = lsusb_output.split('\n')
-    except subprocess.CalledProcessError as exc:
-        output = exc.output.decode()
-        #error_descr = "Issue getting usb info using lsusb command"
-        interfaces = ["Err: lsusb error", str(output)]
-        simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1)
-        return
-
-    interfaces = []
-
-    for result in lsusb_info:
-
-        # chop down the string to fit the display
-        result = result[0:19]
-
-        interfaces.append(result)
-
-    if len(interfaces) == 0:
-        interfaces.append("No devices detected")
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1,
-                         title='--USB Interfaces--')
-
-    return
-
-
-def show_ufw():
-    '''
-    Return a list ufw ports
-    '''
-    global ufw_file
-    global result_cache
-    global display_state
-
-    ufw_info = []
-
-    # check ufw is available
-    if not os.path.isfile(ufw_file):
-
-        simple_table_obj. display_dialog_msg(g_vars, 'UFW not installed', back_button_req=1)
-
-        display_state = 'page'
-        return
-
-    # If no cached ufw data from previous screen paint, run ufw status
-    if result_cache == False:
-
-        try:
-            ufw_output = subprocess.check_output(
-                "sudo {} status".format(ufw_file), shell=True).decode()
-            ufw_info = ufw_output.split('\n')
-            result_cache = ufw_info  # cache results
-        except Exception as ex:
-            error_descr = "Issue getting ufw info using ufw command"
-            interfaces = ["Err: ufw error", error_descr, str(ex)]
-            simple_table_obj.display_simple_table(g_vars, interfaces, back_button_req=1)
-            return
-    else:
-        # we must have cached results from last time
-        ufw_info = result_cache
-
-    port_entries = []
-
-    # Add in status line
-    port_entries.append(ufw_info[0])
-
-    # lose top 4 & last 2 lines of output
-    ufw_info = ufw_info[4:-2]
-
-    for result in ufw_info:
-
-        # tidy/compress the output
-        result = result.strip()
-        result_list = result.split()
-
-        final_result = ' '.join(result_list)
-
-        port_entries.append(final_result)
-
-    if len(port_entries) == 0:
-        port_entries.append("No ufw info detected")
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    paged_table_obj.display_list_as_paged_table(
-        port_entries, back_button_req=1, title='--UFW Summary--')
-
-    return
-
-
-def show_eth0_ipconfig():
-    '''
-    Return IP configuration of eth0 including IP, default gateway, DNS servers
-    '''
-    global display_state
-
-    eth0_ipconfig_info = []
-
-    try:
-        ipconfig_output = subprocess.check_output(
-            ipconfig_file, shell=True).decode()
-        ipconfig_info = ipconfig_output.split('\n')
-
-    except subprocess.CalledProcessError as exc:
-        output = exc.output.decode()
-        #error_descr = "Issue getting ipconfig"
-        ipconfigerror = ["Err: ipconfig command error", output]
-        simple_table_obj.display_simple_table(g_vars, ipconfigerror, back_button_req=1)
-        return
-
-    if len(ipconfig_info) == 0:
-        eth0_ipconfig_info.append("Nothing to display")
-
-    for n in ipconfig_info:
-        eth0_ipconfig_info.append(n)
-
-    # chop down output to fit up to 2 lines on display
-    choppedoutput = []
-
-    for n in eth0_ipconfig_info:
-        choppedoutput.append(n[0:20])
-        if len(n) > 20:
-            choppedoutput.append(n[20:40])
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                         title='--Eth0 IP Config--')
-
-    return
-
-
-def show_lldp_neighbour():
-    '''
-    Display LLDP neighbour on eth0
-    '''
-    global display_state
-
-    neighbour_info = []
-    neighbour_cmd = "sudo cat " + lldpneigh_file
-
-    if os.path.exists(lldpneigh_file):
-
-        try:
-            neighbour_output = subprocess.check_output(
-                neighbour_cmd, shell=True).decode()
-            neighbour_info = neighbour_output.split('\n')
-
-        except subprocess.CalledProcessError as exc:
-            output = exc.output.decode()
-            #error_descr = "Issue getting LLDP neighbour"
-            error = ["Err: Neighbour command error", output]
-            simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
-            return
-
-    if len(neighbour_info) == 0:
-        neighbour_info.append("No neighbour")
-
-    # chop down output to fit up to 2 lines on display
-    choppedoutput = []
-
-    for n in neighbour_info:
-        choppedoutput.append(n[0:20])
-        if len(n) > 20:
-            choppedoutput.append(n[20:40])
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                         title='--LLDP Neighbour--')
-
-
-def show_cdp_neighbour():
-    '''
-    Display CDP neighbour on eth0
-    '''
-    global display_state
-
-    neighbour_info = []
-    neighbour_cmd = "sudo cat " + cdpneigh_file
-
-    if os.path.exists(cdpneigh_file):
-
-        try:
-            neighbour_output = subprocess.check_output(
-                neighbour_cmd, shell=True).decode()
-            neighbour_info = neighbour_output.split('\n')
-
-        except subprocess.CalledProcessError as exc:
-            output = exc.output.decode()
-            #error_descr = "Issue getting LLDP neighbour"
-            error = ["Err: Neighbour command error", output]
-            simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
-            return
-
-    if len(neighbour_info) == 0:
-        neighbour_info.append("No neighbour")
-
-    # chop down output to fit up to 2 lines on display
-    choppedoutput = []
-
-    for n in neighbour_info:
-        choppedoutput.append(n[0:20])
-        if len(n) > 20:
-            choppedoutput.append(n[20:40])
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                         title='--CDP Neighbour--')
-
-
-def show_reachability():
-    '''
-    Check if default gateway, internet and DNS are reachable and working
-    '''
-    global display_state
-
-    reachability_info = []
-    reachability_cmd = "sudo " + reachability_file
-
-    try:
-        reachability_output = subprocess.check_output(
-            reachability_cmd, shell=True).decode()
-        reachability_info = reachability_output.split('\n')
-
-    except subprocess.CalledProcessError as exc:
-        output = exc.output.decode()
-        #error_descr = "Issue getting reachability info"
-        error = ["Err: Reachability command error", output]
-        simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
-        return
-
-    if len(reachability_info) == 0:
-        reachability_info.append("No output sorry")
-
-    # chop down output to fit up to 2 lines on display
-    choppedoutput = []
-
-    for n in reachability_info:
-        choppedoutput.append(n[0:20])
-        if len(n) > 20:
-            choppedoutput.append(n[20:40])
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                         title='--Reachability--')
-
-
-def show_vlan():
-    '''
-    Display untagged VLAN number on eth0
-    Todo: Add tagged VLAN info
-    '''
-
-    global display_state
-
-    vlan_info = []
-
-    vlan_cmd = "sudo grep -a VLAN " + lldpneigh_file + \
-        " || grep -a VLAN " + cdpneigh_file
-
-    if os.path.exists(lldpneigh_file):
-
-        try:
-            vlan_output = subprocess.check_output(
-                vlan_cmd, shell=True).decode()
-            vlan_info = vlan_output.split('\n')
-
-        except subprocess.CalledProcessError as exc:
-            #output = exc.output.decode()
-            #error_descr = "Issue getting VLAN info"
-            error = ["No VLAN found"]
-            simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
-            return
-
-    if len(vlan_info) == 0:
-        vlan_info.append("No VLAN found")
-
-    # final chop down of the string to fit the display
-    for n in vlan_info:
-        n = n[0:19]
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    simple_table_obj.display_simple_table(g_vars, vlan_info, back_button_req=1, title='--Eth0 VLAN--')
-
-
-def show_wpa_passphrase():
-    '''
-    Show WPA passphrase
-    '''
-    global display_state
-
-    swpc = "sudo grep 'wpa_passphrase' /etc/hostapd.conf | cut -d '=' -f2"
-
-    try:
-        wpa_passphrase = []
-        wpa_passphrase_output = subprocess.check_output(
-            swpc, shell=True).decode()
-        wpa_passphrase.append(wpa_passphrase_output)
-
-    except subprocess.CalledProcessError as exc:
-        output = exc.output.decode()
-        #error_descr = "Issue getting WPA passphrase"
-        swperror = ["Err: WPA passphrase", output]
-        simple_table_obj.display_simple_table(g_vars, swperror, back_button_req=1)
-        return
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    # chop down output to fit up to 2 lines on display
-    choppedoutput = []
-
-    for n in wpa_passphrase:
-        choppedoutput.append(n[0:20])
-        if len(n) > 20:
-            choppedoutput.append(n[20:40])
-
-    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                         title='--WPA passphrase--')
-
-
-def show_speedtest():
-    '''
-    Run speedtest.net speed test and format output to fit the OLED screen
-    ( *** Note that speedtest_status set back to False in menu_right() *** )
-    '''
-    speedtest_obj = Speedtest(g_vars)
-    speedtest_obj.show_speedtest(g_vars)
-
-
-
-
-def show_publicip():
-    '''
-    Shows public IP address and related details, works with any interface with internet connectivity
-    '''
-    global display_state
-
-    publicip_info = []
-
-    try:
-        publicip_output = subprocess.check_output(
-            publicip_cmd, shell=True).decode()
-        publicip_info = publicip_output.split('\n')
-
-    except subprocess.CalledProcessError as exc:
-        output = exc.output.decode()
-        #error_descr = "Public IP Error"
-        error = ["Err: Public IP", output]
-        simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
-        return
-
-    if len(publicip_info) == 0:
-        publicip_info.append("No output sorry")
-
-    # chop down output to fit up to 2 lines on display
-    choppedoutput = []
-
-    for n in publicip_info:
-        choppedoutput.append(n[0:20])
-        if len(n) > 20:
-            choppedoutput.append(n[20:40])
-
-    # final check no-one pressed a button before we render page
-    if display_state == 'menu':
-        return
-
-    simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                         title='--Public IP Address--')
-    time.sleep(10)
-
-
-def show_menu_ver():
-
-    global __version__
-
-    simple_table_obj.display_simple_table(g_vars, ["Menu version:", __version__],
-                         back_button_req=1, font="medium")
-
-
-def shutdown():
-
-    global oled
-    global shutdown_in_progress
-    global screen_cleared
-
-    simple_table_obj. display_dialog_msg(g_vars, 'Shutting down...', back_button_req=0)
-    time.sleep(1)
-
-    oled.clearDisplay()
-    screen_cleared = True
-
-    os.system('systemctl poweroff')
-    shutdown_in_progress = True
-    return
-
-
-def reboot():
-
-    global oled
-    global shutdown_in_progress
-    global screen_cleared
-    global reboot_image
-
-    simple_table_obj. display_dialog_msg(g_vars, 'Rebooting...', back_button_req=0)
-    time.sleep(1)
-
-    oled.drawImage(g_vars['reboot_image'])
-
-    screen_cleared = True
-
-    os.system('systemctl reboot')
-    shutdown_in_progress = True
-    return
-
 
 def switcher(resource_title, resource_switcher_file, mode_name):
     '''
@@ -1162,10 +270,7 @@ def switcher(resource_title, resource_switcher_file, mode_name):
     '''
 
     global oled
-    global shutdown_in_progress
-    global screen_cleared
-    global current_mode
-    global display_state
+
     global reboot_image
 
     # check resource is available
@@ -1173,32 +278,32 @@ def switcher(resource_title, resource_switcher_file, mode_name):
 
         simple_table_obj. display_dialog_msg(g_vars, '{} not available'.format(
             resource_title), back_button_req=1)
-        display_state = 'page'
+        g_vars['display_state'] = 'page'
         return
 
     # Resource switcher was detected, so assume it's installed
     back_button_req = 0
 
-    if current_mode == "classic":
+    if g_vars['current_mode'] == "classic":
         # if in classic mode, switch to the resource
         dialog_msg = 'Switching to {} mode (rebooting...)'.format(
             resource_title)
         switch = "on"
-    elif current_mode == mode_name:
+    elif g_vars['current_mode'] == mode_name:
         dialog_msg = 'Switching to Classic mode (rebooting...)'
         switch = "off"
     else:
-        dialog_msg('Unknown mode: {}'.format(current_mode), back_button_req=1)
-        display_state = 'page'
+        dialog_msg('Unknown mode: {}'.format(g_vars['current_mode']), back_button_req=1)
+        g_vars['display_state'] = 'page'
         return False
 
     # Flip the mode
     simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req)
-    shutdown_in_progress = True
+    g_vars['shutdown_in_progress'] = True
     time.sleep(2)
 
     oled.drawImage(g_vars['reboot_image'])
-    screen_cleared = True
+    g_vars['screen_cleared'] = True
 
     try:
         dialog_msg = subprocess.check_output("{} {}".format(
@@ -1209,17 +314,16 @@ def switcher(resource_title, resource_switcher_file, mode_name):
 
     # We only get to this point if the switch has failed for some reason
     # (Note that the switcher script reboots the WLANPi)
-    shutdown_in_progress = False
-    screen_cleared = False
+    g_vars['shutdown_in_progress'] = False
+    g_vars['screen_cleared'] = False
     simple_table_obj. display_dialog_msg(g_vars, "Switch failed: {}".format(
         dialog_msg), back_button_req=0)
-    display_state = 'menu'
+    g_vars['display_state'] = 'menu'
 
     # allow 5 secs to view failure msg
     time.sleep(3)
     # move back up to menu branch
-    global current_menu_location
-    current_menu_location.pop()
+    g_vars['current_menu_location'].pop()
 
     return False
 
@@ -1267,13 +371,13 @@ def kismet_ctl(action="status"):
     '''
 
     global kismet_ctl_file
-    global display_state
+
 
     # check resource is available
     if not os.path.isfile(kismet_ctl_file):
         simple_table_obj. display_dialog_msg(g_vars, '{} not available'.format(
             kismet_ctl_file), back_button_req=1)
-        display_state = 'page'
+        g_vars['display_state'] = 'page'
         return
 
     if action == "status":
@@ -1302,7 +406,7 @@ def kismet_ctl(action="status"):
             dialog_msg = 'Stop failed! {}'.format(output)
 
     simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
-    display_state = 'page'
+    g_vars['display_state'] = 'page'
     return True
 
 
@@ -1327,13 +431,13 @@ def bettercap_ctl(action="status"):
     '''
 
     global bettercap_ctl_file
-    global display_state
+
 
     # check resource is available
     if not os.path.isfile(bettercap_ctl_file):
         simple_table_obj. display_dialog_msg(g_vars, '{} not available'.format(
             bettercap_ctl_file), back_button_req=1)
-        display_state = 'page'
+        g_vars['display_state'] = 'page'
         return
 
     if action == "status":
@@ -1362,7 +466,7 @@ def bettercap_ctl(action="status"):
             dialog_msg = 'Stop failed! {}'.format(output)
 
     simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
-    display_state = 'page'
+    g_vars['display_state'] = 'page'
     return True
 
 
@@ -1387,13 +491,13 @@ def profiler_ctl(action="status"):
     '''
 
     global profiler_ctl_file
-    global display_state
+
 
     # check resource is available
     if not os.path.isfile(profiler_ctl_file):
         simple_table_obj. display_dialog_msg(g_vars, 'not available: {}'.format(
             profiler_ctl_file), back_button_req=1)
-        display_state = 'page'
+        g_vars['display_state'] = 'page'
         return
 
     if action == "status":
@@ -1408,7 +512,7 @@ def profiler_ctl(action="status"):
 
         simple_table_obj.display_simple_table(g_vars, item_list, back_button_req=1,
                              title='Profiler Status')
-        display_state = 'page'
+        g_vars['display_state'] = 'page'
         return True
 
     elif action == "start":
@@ -1444,7 +548,7 @@ def profiler_ctl(action="status"):
             dialog_msg = 'Report purge failed! {}'.format(output)
 
     simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
-    display_state = 'page'
+    g_vars['display_state'] = 'page'
     return True
 
 
@@ -1472,170 +576,51 @@ def profiler_purge():
     profiler_ctl(action="purge")
     return
 
-
-def check_wiperf_status():
-
-    status_file = '/tmp/wiperf_status.txt'
-    if os.path.exists(status_file):
-        try:
-            statusf = open(status_file, 'r')
-            msg = statusf.readline()
-        except:
-            # not much we can do, fail silently
-            return ''
-
-        # return extracted line
-        return " ({})".format(msg)
-    else:
-        return ''
-
-
-def home_page():
-
-    global draw
-    global oled
-    global wlanpi_ver
-    global current_mode
-    global hostname
-    global drawing_in_progress
-    global display_state
-    global ethtool_file
-
-    g_vars['drawing_in_progress'] = True
-    display_state = 'page'
-
-    if current_mode == "wconsole":
-        # get wlan0 IP
-        if_name = "wlan0"
-        mode_name = "Wi-Fi Console"
-
-    elif current_mode == "hotspot":
-        # get wlan0 IP
-        if_name = "wlan0"
-        mode_name = "Hotspot " + wifi_client_count() + " clients"
-
-    elif current_mode == "wiperf":
-        # get wlan0 IP
-        if_name = "wlan0"
-        mode_name = "Wiperf" + check_wiperf_status()
-
-    else:
-        # get eth0 IP
-        if_name = "eth0"
-        mode_name = ""
-
-        # get Ethernet port info (...for Jerry)
-        try:
-            # eth_speed_info  = subprocess.check_output("{} eth0  | grep -i speed | cut -d' ' -f2".format(ethtool_file), shell=True)
-            eth_info = subprocess.check_output(
-                '{} eth0 2>/dev/null'.format(ethtool_file), shell=True).decode()
-            speed_re = re.findall(r'Speed\: (.*\/s)', eth_info, re.MULTILINE)
-            duplex_re = re.findall(r'Duplex\: (.*)', eth_info, re.MULTILINE)
-            link_re = re.findall(r'Link detected\: (.*)',
-                                 eth_info, re.MULTILINE)
-
-            if (speed_re is None) or (duplex_re is None) or (link_re is None):
-                # Our pattern matching failed...silently fail....we must set up logging at some stage
-                mode_name = ""
-            elif (link_re[0] == "no"):
-                # Ethernet link is down, report msg instead of speed & duplex
-                mode_name = "Link down"
-            else:
-                # Report the speed & duplex messages from ethtool
-                mode_name = "{} {}".format(speed_re[0], duplex_re[0])
-
-        except Exception as ex:
-            # Something went wrong...show nothing
-            mode_name = ""
-
-        # If eth0 is down, lets show the usb0 IP address
-        # in case anyone uses OTG conection & is confused
-        if mode_name == "Link down":
-            if_name = "usb0"
-            mode_name = ""
-
-    ip_addr_cmd = "ip addr show {}  2>/dev/null | grep -Po \'inet \K[\d.]+\' | head -n 1".format(
-        if_name)
-
-    try:
-        ip_addr = subprocess.check_output(ip_addr_cmd, shell=True).decode()
-    except Exception as ex:
-        ip_addr = "No IP Addr"
-
-    screen_obj.clear_display(g_vars)
-    g_vars['draw'].text((0, 1), str(wlanpi_ver), font=smartFont, fill=255)
-    g_vars['draw'].text((0, 11), str(hostname), font=font11, fill=255)
-    g_vars['draw'].text((95, 20), if_name, font=smartFont, fill=255)
-    g_vars['draw'].text((0, 29), str(ip_addr), font=font14, fill=255)
-    g_vars['draw'].text((0, 43), str(mode_name), font=smartFont, fill=255)
-    nav_button_obj.back('Menu')
-    oled.drawImage(g_vars['image'])
-
-    g_vars['drawing_in_progress'] = False
-    return
-
 #######################
 # other functions here
 #######################
 
 
-def wifi_client_count():
-    wccc = "sudo /sbin/iw dev wlan0 station dump | grep 'Station' | wc -l"
 
-    try:
-        client_count = subprocess.check_output(wccc, shell=True).decode()
-
-    except subprocess.CalledProcessError as exc:
-        output = exc.output.decode()
-        #error_descr = "Issue getting number of  Wi-Fi clients"
-        wccerror = ["Err: Wi-Fi client count", str(output)]
-        simple_table_obj.display_simple_table(g_vars, wccerror, back_button_req=1)
-        return
-
-    return client_count.strip()
 
 
 def menu_down():
 
-    global current_menu_location
     global menu
-    global current_scroll_selection
-    global display_state
+
 
     # If we are in a table, scroll down (unless at bottom of list)
-    if display_state == 'page':
-        current_scroll_selection += 1
+    if g_vars['display_state'] == 'page':
+        g_vars['current_scroll_selection'] += 1
         return
 
     # Menu not currently shown, do nothing
-    if display_state != 'menu':
+    if g_vars['display_state'] != 'menu':
         return
 
     # pop the last menu list item, increment & push back on
-    current_selection = current_menu_location.pop()
+    current_selection = g_vars['current_menu_location'].pop()
     current_selection = current_selection + 1
-    current_menu_location.append(current_selection)
+    g_vars['current_menu_location'].append(current_selection)
 
-    draw_page()
+    page_obj.draw_page(g_vars, menu)
 
 
 def menu_right(g_vars=g_vars):
 
-    global current_menu_location
     global menu
-    global current_scroll_selection
-    global display_state
+
     global speedtest_status
 
     # make sure we know speedtest is done
     g_vars['speedtest_status'] = False
 
     # If we are in a table, scroll up (unless at top of list)
-    if display_state == 'page':
-        if current_scroll_selection == 0:
+    if g_vars['display_state'] == 'page':
+        if g_vars['current_scroll_selection'] == 0:
             return
         else:
-            current_scroll_selection -= 1
+            g_vars['current_scroll_selection'] -= 1
             return
 
     # Check if the "action" field at the current location is an
@@ -1643,69 +628,144 @@ def menu_right(g_vars=g_vars):
 
     # if we have an array, append the current selection and re-draw menu
     if (type(g_vars['option_selected']) is list):
-        current_menu_location.append(0)
-        draw_page()
+        g_vars['current_menu_location'].append(0)
+        page_obj.draw_page(g_vars, menu)
     elif (isinstance(g_vars['option_selected'], types.FunctionType)):
         # if we have a function (dispatcher), execute it
-        display_state = 'page'
+        g_vars['display_state'] = 'page'
         g_vars['option_selected']()
 
 
 def menu_left():
 
-    global current_menu_location
     global menu
-    global current_scroll_selection
-    global table_list_length
-    global result_cache
-    global display_state
-    global start_up
 
     # If we're in a table we need to exit, reset table scroll counters, reset
     # result cache and draw the menu for our current level
-    if display_state == 'page':
-        current_scroll_selection = 0
-        table_list_length = 0
-        display_state = 'menu'
-        display_state = 'menu'
-        draw_page()
-        result_cache = False
+    if g_vars['display_state'] == 'page':
+        g_vars['current_scroll_selection'] = 0
+        g_vars['table_list_length'] = 0
+        g_vars['display_state'] = 'menu'
+        page_obj.draw_page(g_vars, menu)
+        g_vars['result_cache'] = False
         return
 
-    if display_state == 'menu':
+    if g_vars['display_state'] == 'menu':
 
         # check to make sure we aren't at top of menu structure
-        if len(current_menu_location) == 1:
+        if len(g_vars['current_menu_location']) == 1:
             # If we're at the top and hit exit (back) button, revert to start-up state
-            start_up = True
+            g_vars['start_up'] = True
             home_page()
         else:
-            current_menu_location.pop()
-            draw_page()
+            g_vars['current_menu_location'].pop()
+            page_obj.draw_page(g_vars, menu)
     else:
-        display_state = 'menu'
-        draw_page()
+        g_vars['display_state'] = 'menu'
+        page_obj.draw_page(g_vars, menu)
 
 
 def go_up():
 
     # executed when the back navigation item is selected
 
-    global current_menu_location
-    global display_state
+    g_vars['display_state'] = 'menu'
 
-    display_state = 'menu'
-
-    if len(current_menu_location) == 1:
+    if len(g_vars['current_menu_location']) == 1:
         # we must be at top level, do nothing
         return
     else:
         # Take off last level of menu structure to go up
         # Set index to 0 so top menu item selected
-        current_menu_location.pop()
-        current_menu_location[-1] = 0
+        g_vars['current_menu_location'].pop()
+        g_vars['current_menu_location'][-1] = 0
 
-        draw_page()
+        page_obj.draw_page(g_vars, menu)
+
+# Instantiate objects
+screen_obj = Screen(g_vars)
+simple_table_obj = SimpleTable(g_vars)
+nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
+paged_table_obj = PagedTable(g_vars)
+page_obj = Page(g_vars)
+
+###########################
+# Network menu area utils
+###########################
+def show_interfaces():
+    network_obj = Network(g_vars)
+    network_obj.show_interfaces(g_vars)
+
+def show_wlan_interfaces():
+    network_obj = Network(g_vars)
+    network_obj.show_wlan_interfaces(g_vars)
+
+def show_eth0_ipconfig():
+    network_obj = Network(g_vars)
+    network_obj.show_eth0_ipconfig(g_vars)
+
+def show_vlan():
+    network_obj = Network(g_vars)
+    network_obj.show_vlan(g_vars)
+
+def show_lldp_neighbour():
+    network_obj = Network(g_vars)
+    network_obj.show_lldp_neighbour(g_vars)
+
+def show_cdp_neighbour():
+    network_obj = Network(g_vars)
+    network_obj.show_cdp_neighbour(g_vars)
+
+def show_publicip():
+    network_obj = Network(g_vars)
+    network_obj.show_publicip(g_vars)
+
+###########################
+# Utils menu area
+###########################
+def show_reachability():
+    utils_obj = Utils(g_vars)
+    utils_obj.show_reachability(g_vars)
+
+def show_speedtest():
+    utils_obj = Utils(g_vars)
+    utils_obj.show_speedtest(g_vars)
+
+def show_wpa_passphrase():
+    utils_obj = Utils(g_vars)
+    utils_obj.show_wpa_passphrase(g_vars)
+
+def show_usb():
+    utils_obj = Utils(g_vars)
+    utils_obj.show_usb(g_vars)
+
+def show_ufw():
+    utils_obj = Utils(g_vars)
+    utils_obj.show_ufw(g_vars)
+
+###########################
+# System menu area utils
+###########################
+
+def shutdown():
+    system_obj = System(g_vars)
+    system_obj.shutdown(g_vars)
+
+def reboot():
+    system_obj = System(g_vars)
+    system_obj.reboot(g_vars)
+
+def show_summary():
+    system_obj = System(g_vars)
+    system_obj.show_summary(g_vars)
+
+def show_date():
+    system_obj = System(g_vars)
+    system_obj.show_date(g_vars)
+
+def show_menu_ver():
+    system_obj = System(g_vars)
+    system_obj.fpms_version(g_vars)
 
 #######################
 # menu structure here
@@ -1797,19 +857,19 @@ menu = [
 
 
 # update menu options data structure if we're in non-classic mode
-if current_mode == "wconsole":
+if g_vars['current_mode'] == "wconsole":
     switcher_dispatcher = wconsole_switcher
-    home_page_name = "Wi-Fi Console"
+    g_vars['home_page_name'] = "Wi-Fi Console"
 
-if current_mode == "hotspot":
+if g_vars['current_mode'] == "hotspot":
     switcher_dispatcher = hotspot_switcher
-    home_page_name = "Hotspot"
+    g_vars['home_page_name'] = "Hotspot"
 
-if current_mode == "wiperf":
+if g_vars['current_mode'] == "wiperf":
     switcher_dispatcher = wiperf_switcher
-    home_page_name = "Wiperf"
+    g_vars['home_page_name'] = "Wiperf"
 
-if current_mode != "classic":
+if g_vars['current_mode'] != "classic":
     menu[2] = {"name": "Mode", "action": [
         {"name": "Classic Mode",   "action": [
             {"name": "Cancel", "action": go_up},
@@ -1821,6 +881,10 @@ if current_mode != "classic":
 
     menu.pop(3)
 
+def home_page():
+    homepage_obj = HomePage(g_vars)
+    homepage_obj.home_page(g_vars, menu)
+
 # Set up handlers to process key presses
 
 
@@ -1828,54 +892,49 @@ def receive_signal(signum, stack, g_vars=g_vars):
 
     global pageSleepCountdown
     global pageSleep
-    global current_menu_location
-    global shutdown_in_progress
-    global screen_cleared
-    global sig_fired
-    global start_up
     global disable_keys
 
     if g_vars['disable_keys'] == True:
         # someone disabled the front panel keys as they don't want to be interrupted
         return
 
-    if (sig_fired):
+    if (g_vars['sig_fired']):
         # signal handler already in progress, ignore this one
         return
 
     # user pressed a button, reset the sleep counter
     pageSleepCountdown = pageSleep
 
-    start_up = False
+    g_vars['start_up'] = False
 
-    if g_vars['drawing_in_progress'] or shutdown_in_progress:
+    if g_vars['drawing_in_progress'] or g_vars['shutdown_in_progress']:
         return
 
     # if display has been switched off to save screen, power back on and show home menu
-    if screen_cleared:
-        screen_cleared = False
+    if g_vars['screen_cleared']:
+        g_vars['screen_cleared'] = False
         pageSleepCountdown = pageSleep
         return
 
     # Key 1 pressed - Down key
     if signum == signal.SIGUSR1:
-        sig_fired = True
+        g_vars['sig_fired'] = True
         menu_down()
-        sig_fired = False
+        g_vars['sig_fired'] = False
         return
 
     # Key 2 pressed - Right/Selection key
     if signum == signal.SIGUSR2:
-        sig_fired = True
+        g_vars['sig_fired'] = True
         menu_right()
-        sig_fired = False
+        g_vars['sig_fired'] = False
         return
 
     # Key 3 pressed - Left/Back key
     if signum == signal.SIGALRM:
-        sig_fired = True
+        g_vars['sig_fired'] = True
         menu_left()
-        sig_fired = False
+        g_vars['sig_fired'] = False
         return
 
 ###############################################################################
@@ -1921,7 +980,7 @@ while True:
 
     try:
 
-        if shutdown_in_progress or screen_cleared or g_vars['drawing_in_progress']:
+        if g_vars['shutdown_in_progress'] or g_vars['screen_cleared'] or g_vars['drawing_in_progress']:
 
             # we don't really want to do anything at the moment, lets
             # nap and loop around
@@ -1929,24 +988,24 @@ while True:
             continue
 
         # Draw a menu or execute current action (dispatcher)
-        if display_state != 'menu':
+        if g_vars['display_state'] != 'menu':
             # no menu shown, so must be executing action.
 
             # if we've just booted up, show home page
-            if start_up == True:
+            if g_vars['start_up'] == True:
                 g_vars['option_selected'] = home_page
 
              # Re-run current action to refresh screen
             g_vars['option_selected']()
         else:
             # lets try drawing our page (or refresh if already painted)
-            draw_page()
+            page_obj.draw_page(g_vars, menu)
 
         # if screen timeout is zero, clear it if not already done (blank the
         # display to reduce screenburn)
-        if pageSleepCountdown == 0 and screen_cleared == False:
+        if pageSleepCountdown == 0 and g_vars['screen_cleared'] == False:
             oled.clearDisplay()
-            screen_cleared = True
+            g_vars['screen_cleared'] = True
 
         pageSleepCountdown = pageSleepCountdown - 1
 
