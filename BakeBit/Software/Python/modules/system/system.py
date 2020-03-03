@@ -2,6 +2,7 @@ import bakebit_128_64_oled as oled
 import time
 import os
 import subprocess
+import socket
 
 from modules.pages.screen import *
 from modules.navigation import *

@@ -1,8 +1,6 @@
-
 #################################
 # Front panel navigation buttons
 #################################
-
 class NavButton(object):
 
     def __init__(self, g_vars, fill, font):
@@ -12,6 +10,9 @@ class NavButton(object):
         self.fill = fill
         self.g_vars = g_vars
 
+    #######################################
+    # Rendering of buttons on screen
+    #######################################
     def render_button(self, label, position):
         self.g_vars['draw'].text((position, self.nav_bar_top), label, fill=self.fill, font=self.font)
         return
@@ -30,3 +31,5 @@ class NavButton(object):
     def down(self, label="Down", position=0):
         self.render_button(label, position)
         return
+    
+
