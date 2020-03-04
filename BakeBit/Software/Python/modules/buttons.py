@@ -88,6 +88,7 @@ class Button(object):
     def go_up(self, g_vars, menu):
 
         # executed when the back navigation item is selected
+        # (e.g. "Cancel") - this is not a button press action
 
         g_vars['display_state'] = 'menu'
 

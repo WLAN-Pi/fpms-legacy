@@ -140,12 +140,15 @@ class Page(object):
         # add nav buttons
         self.nav_button_obj.down()
         self.nav_button_obj.next()
+        self.nav_button_obj.back()
         # Don't show back button at top level of menu
+        '''
         if depth != 1:
             self.nav_button_obj.back()
         else:
             self.nav_button_obj.back(label="Exit")
-
+        '''
+        
         oled.drawImage(g_vars['image'])
 
         g_vars['drawing_in_progress'] = False

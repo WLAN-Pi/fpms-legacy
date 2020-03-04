@@ -24,6 +24,9 @@ class HomePage(object):
         self.simple_table_obj = SimpleTable(g_vars)
     
     def wifi_client_count(self):
+        '''
+        Get a count of connected clients when in hotspot mode
+        ''' 
         wccc = "sudo /sbin/iw dev wlan0 station dump | grep 'Station' | wc -l"
 
         try:
@@ -39,6 +42,10 @@ class HomePage(object):
         return client_count.strip()
     
     def check_wiperf_status(self):
+        '''
+        Read the wiperf status file for visual status indication
+        when in iperf mode
+        '''
 
         status_file = '/tmp/wiperf_status.txt'
         if os.path.exists(status_file):
@@ -83,7 +90,6 @@ class HomePage(object):
 
             # get Ethernet port info (...for Jerry)
             try:
-                # eth_speed_info  = subprocess.check_output("{} eth0  | grep -i speed | cut -d' ' -f2".format(ethtool_file), shell=True)
                 eth_info = subprocess.check_output(
                     '{} eth0 2>/dev/null'.format(ethtool_file), shell=True).decode()
                 speed_re = re.findall(r'Speed\: (.*\/s)', eth_info, re.MULTILINE)
@@ -111,8 +117,7 @@ class HomePage(object):
                 if_name = "usb0"
                 mode_name = ""
 
-        ip_addr_cmd = "ip addr show {}  2>/dev/null | grep -Po \'inet \K[\d.]+\' | head -n 1".format(
-            if_name)
+        ip_addr_cmd = "ip addr show {}  2>/dev/null | grep -Po \'inet \K[\d.]+\' | head -n 1".format(if_name)
 
         try:
             ip_addr = subprocess.check_output(ip_addr_cmd, shell=True).decode()
@@ -138,7 +143,18 @@ class HomePage(object):
         g_vars['draw'].text((95, 20), if_name, font=g_vars['smartFont'], fill=255)
         g_vars['draw'].text((0, 29), str(ip_addr), font=g_vars['font14'], fill=255)
         g_vars['draw'].text((0, 43), str(mode_name), font=g_vars['smartFont'], fill=255)
-        self.nav_button_obj.back('Menu')
+
+        # if we're using a symbol key map, over-ride the menu button with the down symbol
+        key_map_name = g_vars.get('key_map')
+        key_map_type = g_vars['key_mappings'][key_map_name]['type']
+
+        if key_map_type == 'symbol':
+            key_map = g_vars['key_mappings'][key_map_name]['key_labels']
+            down_label = key_map['down']['label']
+            self.nav_button_obj.back(label=down_label, override=False)
+        else:
+            self.nav_button_obj.back('Menu')
+
         oled.drawImage(g_vars['image'])
 
         g_vars['drawing_in_progress'] = False

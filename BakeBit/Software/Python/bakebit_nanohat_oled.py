@@ -130,6 +130,9 @@ g_vars = {
     'iw_file': '/usr/sbin/iw',
     'ufw_file': '/usr/sbin/ufw',
     'ethtool_file': '/sbin/ethtool',
+
+    # options: classic, alt, symbols
+    'key_map': 'symbols',
 }
 
 ############################
@@ -147,12 +150,6 @@ if os.path.isfile(g_vars['hotspot_mode_file']):
 if os.path.isfile(g_vars['wiperf_mode_file']):
     g_vars['current_mode'] = 'wiperf'
 
-# Instantiate objects
-screen_obj = Screen(g_vars)
-simple_table_obj = SimpleTable(g_vars)
-nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
-paged_table_obj = PagedTable(g_vars)
-page_obj = Page(g_vars)
 
 ###########################
 # Network menu area utils
@@ -317,6 +314,37 @@ def go_up():
     button_obj = Button(g_vars, menu)
     button_obj.go_up(g_vars, menu)
 
+# Key mappings
+g_vars['key_mappings'] = { 
+        'classic': {
+                'key_actions': { 'key1': menu_down,  'key2': menu_right, 'key3': menu_left },
+                'key_labels':  { 
+                                'down': { 'label': 'Down', 'position': 0 },
+                                'next': { 'label': 'Next', 'position': 50 },
+                                'back': { 'label': 'Back', 'position': 100 },
+                },
+                'type': 'text',
+         },
+        'alt': {
+                'key_actions': { 'key1': menu_left,  'key2': menu_down, 'key3': menu_right },
+                'key_labels':  { 
+                                'back': { 'label': 'Back', 'position': 0 },
+                                'down': { 'label': 'Down', 'position': 50 },
+                                'next': { 'label': 'Next', 'position': 100 },
+                },
+                'type': 'text',
+         },
+        'symbols': {
+                'key_actions': { 'key1': menu_left,  'key2': menu_down, 'key3': menu_right },
+                'key_labels':  { 
+                                'back': { 'label': u" \u2190", 'position': 0 },
+                                'down': { 'label': u"  \u2193", 'position': 55 },
+                                'next': { 'label': u"  \u2192", 'position': 103 },
+                },
+                'type': 'symbol',
+         },
+}
+
 #######################
 # menu structure here
 #######################
@@ -457,21 +485,24 @@ def receive_signal(signum, stack, g_vars=g_vars):
     # Key 1 pressed - Down key
     if signum == signal.SIGUSR1:
         g_vars['sig_fired'] = True
-        menu_down()
+        g_vars['key_mappings'][ g_vars['key_map'] ]['key_actions']['key1']()
+        #menu_down()
         g_vars['sig_fired'] = False
         return
 
     # Key 2 pressed - Right/Selection key
     if signum == signal.SIGUSR2:
         g_vars['sig_fired'] = True
-        menu_right()
+        g_vars['key_mappings'][ g_vars['key_map'] ]['key_actions']['key2']()
+        #menu_right()
         g_vars['sig_fired'] = False
         return
 
     # Key 3 pressed - Left/Back key
     if signum == signal.SIGALRM:
         g_vars['sig_fired'] = True
-        menu_left()
+        g_vars['key_mappings'][ g_vars['key_map'] ]['key_actions']['key3']()
+        #menu_left()
         g_vars['sig_fired'] = False
         return
 
@@ -491,6 +522,9 @@ time.sleep(2)
 signal.signal(signal.SIGUSR1, receive_signal)
 signal.signal(signal.SIGUSR2, receive_signal)
 signal.signal(signal.SIGALRM, receive_signal)
+
+# Instantiate required objects
+page_obj = Page(g_vars)
 
 ##############################################################################
 # Constant 'while' loop to paint images on display or execute actions in
