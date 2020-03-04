@@ -20,6 +20,7 @@ import time
 import subprocess
 import signal
 import os
+import os.path
 import socket
 
 from modules.pages.screen import *
@@ -132,7 +133,8 @@ g_vars = {
     'ethtool_file': '/sbin/ethtool',
 
     # options: classic, alt, symbols
-    'key_map': 'symbols',
+    'buttons_file': "/home/wlanpi/fpms/buttons.txt",
+    'key_map': 'classic',
 }
 
 ############################
@@ -150,6 +152,11 @@ if os.path.isfile(g_vars['hotspot_mode_file']):
 if os.path.isfile(g_vars['wiperf_mode_file']):
     g_vars['current_mode'] = 'wiperf'
 
+# if the buttons file exists, read content
+if os.path.isfile(g_vars['buttons_file']):
+    with open(g_vars['buttons_file'], 'r') as f:
+        key_map = f.readline()
+        g_vars['key_map'] = key_map
 
 ###########################
 # Network menu area utils
@@ -314,6 +321,18 @@ def go_up():
     button_obj = Button(g_vars, menu)
     button_obj.go_up(g_vars, menu)
 
+def buttons_classic():
+    button_obj = Button(g_vars, menu)
+    button_obj.buttons_classic(g_vars)
+
+def buttons_intuitive():
+    button_obj = Button(g_vars, menu)
+    button_obj.buttons_intuitive(g_vars)
+
+def buttons_symbol():
+    button_obj = Button(g_vars, menu)
+    button_obj.buttons_symbol(g_vars)
+
 # Key mappings
 g_vars['key_mappings'] = { 
         'classic': {
@@ -425,6 +444,12 @@ menu = [
             {"name": "Confirm", "action": reboot},
         ]
         },
+        {"name": "Button Config", "action": [
+            {"name": "Classic", "action": buttons_classic},
+            {"name": "Intuitive", "action": buttons_intuitive},
+            {"name": "Symbols", "action": buttons_symbol},
+        ]
+        },
         {"name": "Summary", "action": show_summary},
         {"name": "Date/Time", "action": show_date},
         {"name": "Version", "action": show_menu_ver},
@@ -523,9 +548,6 @@ signal.signal(signal.SIGUSR1, receive_signal)
 signal.signal(signal.SIGUSR2, receive_signal)
 signal.signal(signal.SIGALRM, receive_signal)
 
-# Instantiate required objects
-page_obj = Page(g_vars)
-
 ##############################################################################
 # Constant 'while' loop to paint images on display or execute actions in
 # response to selections made with buttons. When any of the 3 WLANPi buttons
@@ -570,6 +592,7 @@ while True:
             g_vars['option_selected']()
         else:
             # lets try drawing our page (or refresh if already painted)
+            page_obj = Page(g_vars)
             page_obj.draw_page(g_vars, menu)
 
         # if screen timeout is zero, clear it if not already done (blank the

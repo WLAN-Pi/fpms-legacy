@@ -54,7 +54,7 @@ class System(object):
 
         # The commands here take quite a while to execute, so lock screen early
         # (normally done by page drawing function)
-        drawing_in_progress = True
+        g_vars['drawing_in_progress'] = True
 
         # figure out our IP
         IP = ''
