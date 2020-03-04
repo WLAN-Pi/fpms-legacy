@@ -36,7 +36,7 @@ from modules.modes import *
 from modules.apps import *
 from modules.buttons import *
 
-__version__ = "2.00 (alpha-1)"
+__version__ = "2.00 (alpha-2)"
 __author__ = "wifinigel@gmail.com"
 
 ####################################

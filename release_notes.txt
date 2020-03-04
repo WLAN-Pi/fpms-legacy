@@ -1,4 +1,4 @@
-v0.36 - Moved to single FPMS repo
+v2.00-alpha - Move to single FPMS & rebuilt as modular code 
 
 *** Note ****
 If you are moving from the previous Bakebit/NanoHatOLED GitHub repos, you must also perform the following steps once you have installed FPMS using pkg_admin:
