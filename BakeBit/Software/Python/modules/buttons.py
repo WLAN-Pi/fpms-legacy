@@ -78,6 +78,7 @@ class Button(object):
             if len(g_vars['current_menu_location']) == 1:
                 # If we're at the top and hit exit (back) button, revert to start-up state
                 g_vars['start_up'] = True
+                g_vars['current_menu_location'] = [0]
                 self.homepage_obj.home_page(g_vars, menu)
             else:
                 g_vars['current_menu_location'].pop()

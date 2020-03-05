@@ -124,22 +124,10 @@ class HomePage(object):
         except Exception as ex:
             ip_addr = "No IP Addr"
         
-        # get & the current version of WLANPi image
-        ver_cmd = "grep \"WLAN Pi v\" /var/www/html/index.html | sed \"s/<[^>]\+>//g\""
-        try:
-            wlanpi_ver = subprocess.check_output(ver_cmd, shell=True).decode().strip()
-        except:
-            wlanpi_ver = "unknown"
-        
-        # get hostname
-        try:
-            hostname = subprocess.check_output('hostname', shell=True).decode()
-        except:
-            hostname
 
         self.screen_obj.clear_display(g_vars)
-        g_vars['draw'].text((0, 1), str(wlanpi_ver), font=g_vars['smartFont'], fill=255)
-        g_vars['draw'].text((0, 11), str(hostname), font=g_vars['font11'], fill=255)
+        g_vars['draw'].text((0, 1), str(g_vars['wlanpi_ver']), font=g_vars['smartFont'], fill=255)
+        g_vars['draw'].text((0, 11), str(g_vars['hostname']), font=g_vars['font11'], fill=255)
         g_vars['draw'].text((95, 20), if_name, font=g_vars['smartFont'], fill=255)
         g_vars['draw'].text((0, 29), str(ip_addr), font=g_vars['font14'], fill=255)
         g_vars['draw'].text((0, 43), str(mode_name), font=g_vars['smartFont'], fill=255)

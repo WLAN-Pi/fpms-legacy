@@ -160,6 +160,23 @@ if os.path.isfile(g_vars['buttons_file']):
         key_map = f.readline()
         g_vars['key_map'] = key_map
 
+##################################
+# Static info we want to get once
+##################################
+
+# get & the current version of WLANPi image
+ver_cmd = "grep \"WLAN Pi v\" /var/www/html/index.html | sed \"s/<[^>]\+>//g\""
+try:
+    g_vars['wlanpi_ver'] = subprocess.check_output(ver_cmd, shell=True).decode().strip()
+except:
+    g_vars['wlanpi_ver'] = "unknown"
+        
+# get hostname
+try:
+    g_vars['hostname'] = subprocess.check_output('hostname', shell=True).decode()
+except:
+    g_vars['hostname'] = 'Unknown'
+
 ###########################
 # Network menu area utils
 ###########################
@@ -486,6 +503,8 @@ if g_vars['current_mode'] != "classic":
 
 # Set up handlers to process key presses
 def receive_signal(signum, stack, g_vars=g_vars):
+
+    print('Button pressed...')
 
     if g_vars['disable_keys'] == True:
         # someone disabled the front panel keys as they don't want to be interrupted
