@@ -101,6 +101,8 @@ g_vars = {
     'result_cache': False,          # used to cache results when paging info
     'speedtest_status': False,   # Indicates if speedtest has run or is in progress
     'speedtest_result_text': '', # tablulated speedtest result data
+    'button_press_count': 0, # global count of button pressses
+    'last_button_press_count': 0, # copy of count of button pressses used in main loop
 
     #######################################
     # Initialize file variables
@@ -500,6 +502,11 @@ def receive_signal(signum, stack, g_vars=g_vars):
 
     if g_vars['drawing_in_progress'] or g_vars['shutdown_in_progress']:
         return
+    
+    # If we get this far, an action wil be taken as a result of the button press
+    # increment the button press counter to indicate the something has been done 
+    # and a page refresh is required
+    g_vars['button_press_count'] += 1
 
     # if display has been switched off to save screen, power back on and show home menu
     if g_vars['screen_cleared']:
@@ -592,8 +599,15 @@ while True:
             g_vars['option_selected']()
         else:
             # lets try drawing our page (or refresh if already painted)
-            page_obj = Page(g_vars)
-            page_obj.draw_page(g_vars, menu)
+
+            # No point in repainting screen if we are on a
+            # menu page and no buttons pressed since last loop cycle
+            # In reality, this condition will rarely (if ever) be true
+            # as the page painting is driven from the key press which 
+            # interrupts this flow anyhow. Left in as a safeguard
+            if g_vars['button_press_count'] > g_vars['last_button_press_count']:
+                page_obj = Page(g_vars)
+                page_obj.draw_page(g_vars, menu)
 
         # if screen timeout is zero, clear it if not already done (blank the
         # display to reduce screenburn)
@@ -610,6 +624,8 @@ while True:
         break
     except IOError as ex:
         print("Error " + str(ex))
+    
+    g_vars['last_button_press_count'] = g_vars['button_press_count']
 
 '''
 Discounted ideas
