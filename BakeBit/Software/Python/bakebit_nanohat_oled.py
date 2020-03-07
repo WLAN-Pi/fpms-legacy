@@ -22,6 +22,7 @@ import signal
 import os
 import os.path
 import socket
+import random
 
 from modules.pages.screen import *
 from modules.navigation import *
@@ -564,7 +565,10 @@ def receive_signal(signum, stack, g_vars=g_vars):
 ###############################################################################
 
 # First time around (power-up), draw logo on display
-image0 = Image.open('wlanprologo.png').convert('1')
+rogues_gallery = [ 'wlanprologo.png', 'jolla.png', 'wifinigel.png', 'jiribrejcha.png']
+random_image = random.choice(rogues_gallery)
+image0 = Image.open(random_image).convert('1')
+
 oled.drawImage(image0)
 time.sleep(2)
 
