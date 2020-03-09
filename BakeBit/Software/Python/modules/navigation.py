@@ -12,18 +12,9 @@ class NavButton(object):
         
         # figure out key map in use
         self.key_map_name = g_vars.get('key_map')
-        self.key_map = g_vars['key_mappings'][self.key_map_name]['key_labels']
+        self.key_map = g_vars['key_mappings'][self.key_map_name]['key_functions']
         self.map_type = g_vars['key_mappings'][self.key_map_name]['type']
         
-        self.back_pos = self.key_map['back']['position']
-        self.back_label = self.key_map['back']['label']
-
-        self.next_pos = self.key_map['next']['position']
-        self.next_label = self.key_map['next']['label']
-
-        self.down_pos = self.key_map['down']['position']
-        self.down_label = self.key_map['down']['label']
-
     #######################################
     # Rendering of buttons on screen
     #######################################
@@ -38,34 +29,24 @@ class NavButton(object):
         return
 
 
-    def back(self, label="default", override=True):
-        # use key map value if no value passed via method call
-        if label=="default": label = self.back_label
-
-        if override == True:
-            # always over-ride label if we are using symbols
-            if self.map_type=="symbol": label = self.back_label
-        self.render_button(label, self.back_pos)
+    def back(self, function="back"):
+        pos = self.key_map[function]['position']
+        label = self.key_map[function]['label']
+        self.render_button(label, pos)
         return
 
 
-    def next(self, label="default", override=True):
-        # use key map value if no value passed via method call
-        if label=="default": label = self.next_label
-        if override == True:
-            # always over-ride label if we are using symbols
-            if self.map_type=="symbol": label = self.next_label
-        self.render_button(label, self.next_pos)
+    def next(self, function="next"):
+        pos = self.key_map[function]['position']
+        label = self.key_map[function]['label']
+        self.render_button(label, pos)
         return
 
 
-    def down(self, label="default", override=True):
-        # use key map value if no value passed via method call
-        if label=="default": label = self.down_label
-        if override == True:
-            # always over-ride label if we are using symbols
-            if self.map_type=="symbol": label = self.down_label
-        self.render_button(label, self.down_pos)
+    def down(self, function="down"):
+        pos = self.key_map[function]['position']
+        label = self.key_map[function]['label']
+        self.render_button(label, pos)
         return
-    
+
 

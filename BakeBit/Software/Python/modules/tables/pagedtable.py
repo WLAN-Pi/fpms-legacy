@@ -91,14 +91,14 @@ class PagedTable(object):
 
             # if (g_vars['current_scroll_selection'] < page_count) and (g_vars['current_scroll_selection'] < page_count-1):
             if g_vars['current_scroll_selection'] < page_count-1:
-                self.nav_button_obj.down(label="PgDn")
+                self.nav_button_obj.down(function="pgdown")
 
             if (g_vars['current_scroll_selection'] > 0) and (g_vars['current_scroll_selection'] <= page_count - 1):
-                self.nav_button_obj.next(label="PgUp")
+                self.nav_button_obj.down(function="pgup")
 
         # Back button
         if back_button_req:
-            self.nav_button_obj.back(label="Exit")
+            self.nav_button_obj.back(function="exit")
 
         oled.drawImage(g_vars['image'])
 

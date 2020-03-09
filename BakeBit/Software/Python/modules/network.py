@@ -15,9 +15,6 @@ class Network(object):
         # grab a screeb obj
         self.screen_obj = Screen(g_vars)
 
-        # grab a navigation obj
-        self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
-
         # create simple table
         self.simple_table_obj = SimpleTable(g_vars)
 

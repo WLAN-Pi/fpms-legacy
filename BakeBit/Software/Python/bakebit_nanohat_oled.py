@@ -354,6 +354,7 @@ def buttons_symbol():
     button_obj.buttons_symbol(g_vars)
 
 # Key mappings
+'''
 g_vars['key_mappings'] = { 
         'classic': {
                 'key_actions': { 'key1': menu_down,  'key2': menu_right, 'key3': menu_left },
@@ -383,7 +384,62 @@ g_vars['key_mappings'] = {
                 'type': 'symbol',
          },
 }
+'''
 
+g_vars['key_mappings'] = { 
+        'classic': {
+                'key_actions': { 'key1': menu_down,  'key2': menu_right, 'key3': menu_left },
+                'key_functions':  { 
+                                'down':   { 'label': 'Down', 'position': 0 },
+                                'pgdown': { 'label': 'PgDn', 'position': 0 },
+                                
+
+                                'next':   { 'label': 'Next', 'position': 50 },
+                                'up':     { 'label': 'Up', '  position': 50 },
+                                'pgup':   { 'label': 'PgUp', 'position': 50 },
+
+                                'back':   { 'label': 'Back', 'position': 100 },
+                                'menu':   { 'label': 'Menu', 'position': 100 },
+                                'exit':   { 'label': 'Exit', 'position': 100 },
+
+                },
+                'type': 'text',
+         },
+        'alt': {
+                'key_actions': { 'key1': menu_left,  'key2': menu_down, 'key3': menu_right },
+                'key_functions':  { 
+                                'back':   { 'label': 'Back', 'position': 0 },
+                                'exit':   { 'label': 'Exit', 'position': 0 },
+                                'menu':   { 'label': 'Menu', 'position': 0 },
+
+                                'down':   { 'label': 'Down', 'position': 50 },
+                                'pgdown': { 'label': 'PgDn', 'position': 50 },
+
+                                'next': { 'label': 'Next', 'position': 100 },
+                                'up':   { 'label': 'Up', '  position': 100 },
+                                'pgup': { 'label': 'PgUp', 'position': 100 },
+                },
+                'type': 'text',
+         },
+        'symbols': {
+                'key_actions': { 'key1': menu_left,  'key2': menu_down, 'key3': menu_right },
+                'key_functions':  { 
+                                'back':   { 'label': u" \u2190", 'position': 0 },
+                                
+                                'exit':   { 'label': u" \u21B0", 'position': 0 },
+                                'menu':   { 'label': u" \u2193", 'position': 0 },
+                                
+                                'down':   { 'label': u"  \u2193", 'position': 55 },
+                                'pgdown': { 'label': u"  \u2193", 'position': 55 },
+
+
+                                'next': { 'label': u"  \u2192", 'position': 103 },
+                                'up':   { 'label': u"  \u2191", 'position': 103 },
+                                'pgup': { 'label': u"  \u2191", 'position': 103 },
+                },
+                'type': 'symbol',
+         },
+}
 #######################
 # menu structure here
 #######################
@@ -504,8 +560,6 @@ if g_vars['current_mode'] != "classic":
 
 # Set up handlers to process key presses
 def receive_signal(signum, stack, g_vars=g_vars):
-
-    print('Button pressed...')
 
     if g_vars['disable_keys'] == True:
         # someone disabled the front panel keys as they don't want to be interrupted

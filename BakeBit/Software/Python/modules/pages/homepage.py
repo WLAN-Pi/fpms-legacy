@@ -136,13 +136,7 @@ class HomePage(object):
         key_map_name = g_vars.get('key_map')
         key_map_type = g_vars['key_mappings'][key_map_name]['type']
 
-        if key_map_type == 'symbol':
-            key_map = g_vars['key_mappings'][key_map_name]['key_labels']
-            down_label = key_map['down']['label']
-            self.nav_button_obj.back(label=down_label, override=False)
-        else:
-            self.nav_button_obj.back('Menu')
-
+        self.nav_button_obj.back(function='menu')
         oled.drawImage(g_vars['image'])
 
         g_vars['drawing_in_progress'] = False

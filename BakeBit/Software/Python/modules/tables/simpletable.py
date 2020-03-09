@@ -78,7 +78,7 @@ class SimpleTable(object):
 
             # show an up button if not at start of list
             if g_vars['current_scroll_selection'] > 0:
-                self.nav_button_obj.next(label="Up")
+                self.nav_button_obj.next(function="up")
 
         for item in item_list:
 
@@ -92,7 +92,7 @@ class SimpleTable(object):
 
         # Back button
         if back_button_req:
-            self.nav_button_obj.back(label="Exit")
+            self.nav_button_obj.back(function="exit")
 
         oled.drawImage(g_vars['image'])
 
