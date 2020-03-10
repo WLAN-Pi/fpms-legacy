@@ -354,38 +354,6 @@ def buttons_symbol():
     button_obj.buttons_symbol(g_vars)
 
 # Key mappings
-'''
-g_vars['key_mappings'] = { 
-        'classic': {
-                'key_actions': { 'key1': menu_down,  'key2': menu_right, 'key3': menu_left },
-                'key_labels':  { 
-                                'down': { 'label': 'Down', 'position': 0 },
-                                'next': { 'label': 'Next', 'position': 50 },
-                                'back': { 'label': 'Back', 'position': 100 },
-                },
-                'type': 'text',
-         },
-        'alt': {
-                'key_actions': { 'key1': menu_left,  'key2': menu_down, 'key3': menu_right },
-                'key_labels':  { 
-                                'back': { 'label': 'Back', 'position': 0 },
-                                'down': { 'label': 'Down', 'position': 50 },
-                                'next': { 'label': 'Next', 'position': 100 },
-                },
-                'type': 'text',
-         },
-        'symbols': {
-                'key_actions': { 'key1': menu_left,  'key2': menu_down, 'key3': menu_right },
-                'key_labels':  { 
-                                'back': { 'label': u" \u2190", 'position': 0 },
-                                'down': { 'label': u"  \u2193", 'position': 55 },
-                                'next': { 'label': u"  \u2192", 'position': 103 },
-                },
-                'type': 'symbol',
-         },
-}
-'''
-
 g_vars['key_mappings'] = { 
         'classic': {
                 'key_actions': { 'key1': menu_down,  'key2': menu_right, 'key3': menu_left },

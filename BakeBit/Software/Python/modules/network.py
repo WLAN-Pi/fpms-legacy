@@ -308,8 +308,8 @@ class Network(object):
         if g_vars['display_state'] == 'menu':
             return
 
-        self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                            title='--LLDP Neighbour--')
+        #self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1, title='--LLDP Neighbour--')
+        self.paged_table_obj.display_list_as_paged_table(g_vars, choppedoutput, back_button_req=1, title='--LLDP N/bor--')
 
 
     def show_cdp_neighbour(self, g_vars):
@@ -350,8 +350,8 @@ class Network(object):
         if g_vars['display_state'] == 'menu':
             return
 
-        self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                            title='--CDP Neighbour--')
+        #self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1, title='--CDP Neighbour--')
+        self.paged_table_obj.display_list_as_paged_table(g_vars, choppedoutput, back_button_req=1, title='--CDP N/bor--')
 
     def show_publicip(self, g_vars):
         '''
@@ -388,6 +388,5 @@ class Network(object):
         if g_vars['display_state'] == 'menu':
             return
 
-        self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1,
-                            title='--Public IP Address--')
+        self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1, title='--Public IP Address--')
         time.sleep(10)
