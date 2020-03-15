@@ -4,7 +4,7 @@
 import bakebit_128_64_oled as oled
 from textwrap import wrap
 
-from modules.pages.screen import *
+from modules.pages.display import *
 from modules.navigation import *
 
 class SimpleTable(object):
@@ -12,7 +12,7 @@ class SimpleTable(object):
     def __init__(self, g_vars):
 
         # grab a screeb obj
-        self.screen_obj = Screen(g_vars)
+        self.display_obj = Display(g_vars)
 
         # grab a navigation obj
         self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
@@ -29,7 +29,7 @@ class SimpleTable(object):
         g_vars['display_state'] = 'page'
 
         # Clear display prior to painting new item
-        self.screen_obj.clear_display(g_vars)
+        self.display_obj.clear_display(g_vars)
 
         y = 0
         x = 0

@@ -3,7 +3,7 @@ import os.path
 import subprocess
 import bakebit_128_64_oled as oled
 
-from modules.tables.simpletable import *
+from modules.pages.simpletable import *
 
 class App(object):
 

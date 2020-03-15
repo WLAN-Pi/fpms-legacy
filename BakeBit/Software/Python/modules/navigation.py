@@ -1,3 +1,7 @@
+from modules.constants import (
+    NAV_BAR_TOP,
+)
+
 #################################
 # Front panel navigation buttons
 #################################
@@ -5,7 +9,7 @@ class NavButton(object):
 
     def __init__(self, g_vars, fill, font):
        
-        self.nav_bar_top = g_vars.get('nav_bar_top')
+        self.nav_bar_top = NAV_BAR_TOP
         self.font = font
         self.fill = fill
         self.g_vars = g_vars

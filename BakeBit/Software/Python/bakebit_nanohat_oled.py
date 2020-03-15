@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-
-'''
-
+# -*- coding: utf-8 -*-
+"""
 This script loosely based on the original bakebit_nanonhat_oled.py provided
 by Friendlyarm. It has been updated to support a scalable menu structure and
 a number of additional features to support the WLANPi initiative.
@@ -10,7 +9,7 @@ History:
 
  2.00 - Complete re-write to move to modular architcture - Nigel 03/03/2020
 
-'''
+"""
 
 import bakebit_128_64_oled as oled
 from PIL import Image
@@ -24,24 +23,34 @@ import os.path
 import socket
 import random
 
-from modules.pages.screen import *
+from modules.constants import (
+    PAGE_SLEEP,
+    PAGE_HEIGHT,
+    PAGE_WIDTH,
+    NAV_BAR_TOP,
+    MENU_VERSION,
+)
+
 from modules.navigation import *
-from modules.tables.simpletable import * 
-from modules.tables.pagedtable import * 
-from modules.utils import *
-from modules.pages.page import *
-from modules.system.system import *
-from modules.network import *
-from modules.pages.homepage import *
-from modules.modes import *
-from modules.apps import *
 from modules.buttons import *
 
-__version__ = "2.00 (alpha-5)"
-__author__ = "wifinigel@gmail.com"
+from modules.pages.display import *
+from modules.pages.homepage import *
+from modules.pages.simpletable import * 
+from modules.pages.pagedtable import * 
+from modules.pages.page import *
+
+from modules.network import *
+from modules.utils import *
+from modules.modes import *
+from modules.system import *
+
+from modules.apps import *
+
+
 
 ####################################
-# Initialize the SEEED OLED display
+# Initialize the SEED OLED display
 ####################################
 oled.init()
 # Set display to normal mode (i.e non-inverse mode)
@@ -56,18 +65,6 @@ g_vars = {
     ############################
     # Shared constants
     ############################
-
-    # Set display size
-    'width': 128,
-    'height': 64,
-
-    # Set page sleep control
-    'pageSleep': 300,
-    'pageSleepCountdown': 300,
-
-    'nav_bar_top': 55,     # top pixel of nav bar
-    'home_page_name': "Home",       # Display name for top level menu
-    'menu_version': __version__,   # fpms version
 
     # Define display fonts
     'smartFont': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 10),
@@ -104,6 +101,8 @@ g_vars = {
     'speedtest_result_text': '', # tablulated speedtest result data
     'button_press_count': 0, # global count of button pressses
     'last_button_press_count': 0, # copy of count of button pressses used in main loop
+    'pageSleepCountdown': PAGE_SLEEP, # Set page sleep control
+    'home_page_name': "Home",       # Display name for top level menu
 
     #######################################
     # Initialize file variables
@@ -143,7 +142,7 @@ g_vars = {
 ############################
 # shared objects
 ############################
-g_vars['image'] = Image.new('1', (g_vars['width'], g_vars['height']))
+g_vars['image'] = Image.new('1', (PAGE_WIDTH, PAGE_HEIGHT))
 g_vars['draw'] = ImageDraw.Draw(g_vars['image'])
 g_vars['reboot_image'] = Image.open('reboot.png').convert('1')
 
@@ -538,7 +537,7 @@ def receive_signal(signum, stack, g_vars=g_vars):
         return
 
     # user pressed a button, reset the sleep counter
-    g_vars['pageSleepCountdown'] = g_vars['pageSleep']
+    g_vars['pageSleepCountdown'] = PAGE_SLEEP
 
     g_vars['start_up'] = False
 
@@ -553,7 +552,7 @@ def receive_signal(signum, stack, g_vars=g_vars):
     # if display has been switched off to save screen, power back on and show home menu
     if g_vars['screen_cleared']:
         g_vars['screen_cleared'] = False
-        g_vars['pageSleepCountdown'] = g_vars['pageSleep']
+        g_vars['pageSleepCountdown'] = PAGE_SLEEP
         return
 
     # Key 1 pressed - Down key

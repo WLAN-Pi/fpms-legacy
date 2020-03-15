@@ -4,16 +4,19 @@ import os
 import subprocess
 import socket
 
-from modules.pages.screen import *
+from modules.pages.display import *
 from modules.navigation import *
-from modules.tables.simpletable import * 
+from modules.pages.simpletable import * 
+from modules.constants import (
+    MENU_VERSION,
+)
 
 class System(object):
 
     def __init__(self, g_vars):
        
         # grab a screeb obj
-        self.screen_obj = Screen(g_vars)
+        self.display_obj = Display(g_vars)
 
         # grab a navigation obj
         self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
@@ -124,7 +127,7 @@ class System(object):
         g_vars['drawing_in_progress'] = True
 
         # Clear display prior to painting new item
-        self.screen_obj.clear_display(g_vars)
+        self.display_obj.clear_display(g_vars)
 
         text = time.strftime("%A")
         g_vars['draw'].text((1, 0), text, font=g_vars['font12'], fill=255)
@@ -144,4 +147,4 @@ class System(object):
         g_vars['drawing_in_progress'] = False
     
     def fpms_version(self, g_vars):
-        self.simple_table_obj.display_simple_table(g_vars, ["Menu version:", g_vars['menu_version'] ],  back_button_req=1, font="medium")
+        self.simple_table_obj.display_simple_table(g_vars, ["Menu version:", MENU_VERSION ],  back_button_req=1, font="medium")

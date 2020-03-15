@@ -1,6 +1,6 @@
 import subprocess
 
-from modules.tables.simpletable import * 
+from modules.pages.simpletable import * 
 
 class Speedtest(object):
 

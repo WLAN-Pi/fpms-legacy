@@ -1,8 +1,8 @@
 import subprocess
 import os.path
 
-from modules.tables.simpletable import * 
-from modules.tables.pagedtable import * 
+from modules.pages.simpletable import * 
+from modules.pages.pagedtable import * 
 
 class Utils(object):
 

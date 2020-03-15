@@ -6,16 +6,16 @@ import subprocess
 import re
 import os.path
 
-from modules.pages.screen import *
+from modules.pages.display import *
 from modules.navigation import *
-from modules.tables.simpletable import *
+from modules.pages.simpletable import *
 
 class HomePage(object):
 
     def __init__(self, g_vars):
 
         # grab a screeb obj
-        self.screen_obj = Screen(g_vars)
+        self.display_obj = Display(g_vars)
 
         # grab a navigation obj
         self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
@@ -125,7 +125,7 @@ class HomePage(object):
             ip_addr = "No IP Addr"
         
 
-        self.screen_obj.clear_display(g_vars)
+        self.display_obj.clear_display(g_vars)
         g_vars['draw'].text((0, 1), str(g_vars['wlanpi_ver']), font=g_vars['smartFont'], fill=255)
         g_vars['draw'].text((0, 11), str(g_vars['hostname']), font=g_vars['font11'], fill=255)
         g_vars['draw'].text((95, 20), if_name, font=g_vars['smartFont'], fill=255)

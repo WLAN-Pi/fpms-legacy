@@ -3,17 +3,17 @@ import os
 import subprocess
 import re
 
-from modules.pages.screen import *
+from modules.pages.display import *
 from modules.navigation import *
-from modules.tables.simpletable import *
-from modules.tables.pagedtable import *  
+from modules.pages.simpletable import *
+from modules.pages.pagedtable import *  
 
 class Network(object):
 
     def __init__(self, g_vars):
        
         # grab a screeb obj
-        self.screen_obj = Screen(g_vars)
+        self.display_obj = Display(g_vars)
 
         # create simple table
         self.simple_table_obj = SimpleTable(g_vars)

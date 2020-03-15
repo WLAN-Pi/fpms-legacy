@@ -2,7 +2,7 @@ import types
 
 from modules.pages.homepage import *
 from modules.pages.page import *
-from modules.tables.simpletable import * 
+from modules.pages.simpletable import * 
 
 class Button(object):
 
