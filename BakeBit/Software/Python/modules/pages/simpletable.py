@@ -5,7 +5,11 @@ import bakebit_128_64_oled as oled
 from textwrap import wrap
 
 from modules.pages.display import *
-from modules.navigation import *
+from modules.nav.navigation import *
+from modules.constants import (
+    SMART_FONT,
+    FONT11,
+)
 
 class SimpleTable(object):
 
@@ -15,7 +19,7 @@ class SimpleTable(object):
         self.display_obj = Display(g_vars)
 
         # grab a navigation obj
-        self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
+        self.nav_button_obj = NavButton(g_vars, 255, SMART_FONT)
         self.draw = g_vars['draw']
 
     def display_simple_table(self, g_vars, item_list, back_button_req=0, title='', font="small"):
@@ -36,12 +40,12 @@ class SimpleTable(object):
         font_offset = 0
 
         if font == "small":
-            font_type = g_vars['smartFont']
+            font_type = SMART_FONT
             font_size = 11
             item_length_max = 20
             table_display_max = 5
         elif font == "medium":
-            font_type = g_vars['font11']
+            font_type = FONT11
             font_size = 11
             item_length_max = 17
             table_display_max = 4

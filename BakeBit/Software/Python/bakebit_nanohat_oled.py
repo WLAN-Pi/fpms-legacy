@@ -29,10 +29,14 @@ from modules.constants import (
     PAGE_WIDTH,
     NAV_BAR_TOP,
     MENU_VERSION,
+    WCONSOLE_MODE_FILE,
+    HOTSPOT_MODE_FILE,
+    WIPERF_MODE_FILE,
+
 )
 
-from modules.navigation import *
-from modules.buttons import *
+from modules.nav.navigation import *
+from modules.nav.buttons import *
 
 from modules.pages.display import *
 from modules.pages.homepage import *
@@ -62,19 +66,6 @@ oled.setHorizontalMode()
 #######################################
 g_vars = {
 
-    ############################
-    # Shared constants
-    ############################
-
-    # Define display fonts
-    'smartFont': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 10),
-    'font11': ImageFont.truetype('DejaVuSansMono.ttf', 11),
-    'font12': ImageFont.truetype('DejaVuSansMono.ttf', 12),
-    'fontb12': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 12),
-    'font14': ImageFont.truetype('DejaVuSansMono.ttf', 14),
-    'fontb14': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 14),
-    'fontb24': ImageFont.truetype('DejaVuSansMono-Bold.ttf', 24),
-
     ##################################################
     # Shared status signals (may be changed anywhere)
     ##################################################
@@ -83,9 +74,9 @@ g_vars = {
     # drawing action in already if progress (e.g. by another activity). An activity
     # happens during each cycle of the main while loop or when a button is pressed
     # (This does not appear to be threading or process spawning)
+    'drawing_in_progress': False, # True when page being painted on screen
 
     'shutdown_in_progress': False,  # True when shutdown or reboot started
-    'drawing_in_progress': False, # True when page being painted on screen
     'screen_cleared': False,        # True when display cleared (e.g. screen save)
     'display_state': 'page',        # current display state: 'page' or 'menu'
     'sig_fired': False,             # Set to True when button handler fired 
@@ -107,15 +98,6 @@ g_vars = {
     #######################################
     # Initialize file variables
     #######################################
-    # Mode changer scripts
-    'wconsole_mode_file': '/etc/wconsole/wconsole.on',
-    'hotspot_mode_file': '/etc/wlanpihotspot/hotspot.on',
-    'wiperf_mode_file': '/home/wlanpi/wiperf/wiperf.on',
-
-    'wconsole_switcher_file': '/etc/wconsole/wconsole_switcher',
-    'hotspot_switcher_file': '/etc/wlanpihotspot/hotspot_switcher',
-    'wiperf_switcher_file': '/home/wlanpi/wiperf/wiperf_switcher',
-
     # helper scripts to launch misc processes
     'kismet_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/kismet_ctl',
     'bettercap_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/bettercap_ctl',
@@ -144,14 +126,14 @@ g_vars = {
 ############################
 g_vars['image'] = Image.new('1', (PAGE_WIDTH, PAGE_HEIGHT))
 g_vars['draw'] = ImageDraw.Draw(g_vars['image'])
-g_vars['reboot_image'] = Image.open('reboot.png').convert('1')
+g_vars['reboot_image'] = Image.open('images/reboot.png').convert('1')
 
 # check our current mode
-if os.path.isfile(g_vars['wconsole_mode_file']):
+if os.path.isfile(WCONSOLE_MODE_FILE):
     g_vars['current_mode'] = 'wconsole'
-if os.path.isfile(g_vars['hotspot_mode_file']):
+if os.path.isfile(HOTSPOT_MODE_FILE):
     g_vars['current_mode'] = 'hotspot'
-if os.path.isfile(g_vars['wiperf_mode_file']):
+if os.path.isfile(WIPERF_MODE_FILE):
     g_vars['current_mode'] = 'wiperf'
 
 # if the buttons file exists, read content
@@ -586,7 +568,7 @@ def receive_signal(signum, stack, g_vars=g_vars):
 ###############################################################################
 
 # First time around (power-up), draw logo on display
-rogues_gallery = [ 'wlanprologo.png', 'jolla.png', 'wifinigel.png', 'jiribrejcha.png']
+rogues_gallery = [ 'images/wlanprologo.png', 'images/jolla.png', 'images/wifinigel.png', 'images/jiribrejcha.png']
 random_image = random.choice(rogues_gallery)
 image0 = Image.open(random_image).convert('1')
 

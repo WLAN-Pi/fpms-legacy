@@ -7,8 +7,13 @@ import re
 import os.path
 
 from modules.pages.display import *
-from modules.navigation import *
+from modules.nav.navigation import *
 from modules.pages.simpletable import *
+from modules.constants import (
+    SMART_FONT,
+    FONT11,
+    FONT14,
+)
 
 class HomePage(object):
 
@@ -18,7 +23,7 @@ class HomePage(object):
         self.display_obj = Display(g_vars)
 
         # grab a navigation obj
-        self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
+        self.nav_button_obj = NavButton(g_vars, 255, SMART_FONT)
 
         # create simple table
         self.simple_table_obj = SimpleTable(g_vars)
@@ -126,11 +131,11 @@ class HomePage(object):
         
 
         self.display_obj.clear_display(g_vars)
-        g_vars['draw'].text((0, 1), str(g_vars['wlanpi_ver']), font=g_vars['smartFont'], fill=255)
-        g_vars['draw'].text((0, 11), str(g_vars['hostname']), font=g_vars['font11'], fill=255)
-        g_vars['draw'].text((95, 20), if_name, font=g_vars['smartFont'], fill=255)
-        g_vars['draw'].text((0, 29), str(ip_addr), font=g_vars['font14'], fill=255)
-        g_vars['draw'].text((0, 43), str(mode_name), font=g_vars['smartFont'], fill=255)
+        g_vars['draw'].text((0, 1), str(g_vars['wlanpi_ver']), font=SMART_FONT, fill=255)
+        g_vars['draw'].text((0, 11), str(g_vars['hostname']), font=FONT11, fill=255)
+        g_vars['draw'].text((95, 20), if_name, font=SMART_FONT, fill=255)
+        g_vars['draw'].text((0, 29), str(ip_addr), font=FONT14, fill=255)
+        g_vars['draw'].text((0, 43), str(mode_name), font=SMART_FONT, fill=255)
 
         # if we're using a symbol key map, over-ride the menu button with the down symbol
         key_map_name = g_vars.get('key_map')

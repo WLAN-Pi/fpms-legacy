@@ -4,7 +4,12 @@
 import bakebit_128_64_oled as oled
 
 from modules.pages.display import *
-from modules.navigation import *
+from modules.nav.navigation import *
+from modules.constants import (
+    SMART_FONT,
+    FONT11,
+    FONTB12,
+)
 
 class Page(object):
 
@@ -14,7 +19,7 @@ class Page(object):
         self.display_obj = Display(g_vars)
 
         # grab a navigation obj
-        self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
+        self.nav_button_obj = NavButton(g_vars, 255, SMART_FONT)
 
     def draw_page(self, g_vars, menu):
 
@@ -97,7 +102,7 @@ class Page(object):
         self.display_obj.clear_display(g_vars)
 
         # paint the page title
-        g_vars['draw'].text((1, 1), page_title,  font=g_vars['fontb12'], fill=255)
+        g_vars['draw'].text((1, 1), page_title,  font=FONTB12, fill=255)
 
         # vertical starting point for menu (under title) & incremental offset for
         # subsequent items
@@ -134,7 +139,7 @@ class Page(object):
             menu_item = "{:<17}>".format(menu_item)
 
             g_vars['draw'].rectangle((0, y, 127, y+y_offset), outline=0, fill=rect_fill)
-            g_vars['draw'].text((1, y+1), menu_item,  font=g_vars['font11'], fill=text_fill)
+            g_vars['draw'].text((1, y+1), menu_item,  font=FONT11, fill=text_fill)
             y += y_offset
 
         # add nav buttons

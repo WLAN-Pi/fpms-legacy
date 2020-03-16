@@ -4,7 +4,10 @@
 import bakebit_128_64_oled as oled
 
 from modules.pages.display import *
-from modules.navigation import *
+from modules.nav.navigation import *
+from modules.constants import (
+    SMART_FONT,
+)
 
 class PagedTable(object):
 
@@ -14,7 +17,7 @@ class PagedTable(object):
         self.display_obj = Display(g_vars)
 
         # grab a navigation obj
-        self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
+        self.nav_button_obj = NavButton(g_vars, 255, SMART_FONT)
         self.draw = g_vars['draw']
 
     def display_paged_table(self, g_vars, table_data, back_button_req=0):
@@ -55,7 +58,7 @@ class PagedTable(object):
             title += " ({}/{})".format(g_vars['current_scroll_selection'] + 1, total_pages)
 
         g_vars['draw'].text((x, y + font_offset), title.center(item_length_max,
-                                                    " "),  font=g_vars['smartFont'], fill=255)
+                                                    " "),  font=SMART_FONT, fill=255)
 
         font_offset += font_size
 
@@ -82,7 +85,7 @@ class PagedTable(object):
             if len(item) > item_length_max:
                 item = item[0:item_length_max]
 
-            g_vars['draw'].text((x, y + font_offset), item,  font=g_vars['smartFont'], fill=255)
+            g_vars['draw'].text((x, y + font_offset), item,  font=SMART_FONT, fill=255)
 
             font_offset += font_size
 

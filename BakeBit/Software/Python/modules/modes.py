@@ -4,6 +4,11 @@ import subprocess
 import bakebit_128_64_oled as oled
 
 from modules.pages.simpletable import *
+from modules.constants import (
+    WCONSOLE_SWITCHER_FILE,
+    HOTSPOT_SWITCHER_FILE,
+    WIPERF_SWITCHER_FILE,
+)
 
 class Mode(object):
 
@@ -71,7 +76,7 @@ class Mode(object):
 
     def wconsole_switcher(self, g_vars):
 
-        wconsole_switcher_file = g_vars['wconsole_switcher_file']
+        wconsole_switcher_file = WCONSOLE_SWITCHER_FILE
 
         resource_title = "Wi-Fi Console"
         mode_name = "wconsole"
@@ -84,7 +89,7 @@ class Mode(object):
 
     def hotspot_switcher(self, g_vars):
 
-        hotspot_switcher_file = g_vars['hotspot_switcher_file']
+        hotspot_switcher_file = HOTSPOT_SWITCHER_FILE
 
         resource_title = "Hotspot"
         mode_name = "hotspot"
@@ -96,7 +101,7 @@ class Mode(object):
 
     def wiperf_switcher(self, g_vars):
 
-        wiperf_switcher_file = g_vars['wiperf_switcher_file']
+        wiperf_switcher_file = WIPERF_SWITCHER_FILE
 
         resource_title = "Wiperf"
         mode_name = "wiperf"

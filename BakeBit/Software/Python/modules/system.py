@@ -5,10 +5,13 @@ import subprocess
 import socket
 
 from modules.pages.display import *
-from modules.navigation import *
+from modules.nav.navigation import *
 from modules.pages.simpletable import * 
 from modules.constants import (
     MENU_VERSION,
+    SMART_FONT,
+    FONT12,
+    FONTB14,
 )
 
 class System(object):
@@ -19,7 +22,7 @@ class System(object):
         self.display_obj = Display(g_vars)
 
         # grab a navigation obj
-        self.nav_button_obj = NavButton(g_vars, 255, g_vars['smartFont'])
+        self.nav_button_obj = NavButton(g_vars, 255, SMART_FONT)
 
         # create simple table
         self.simple_table_obj = SimpleTable(g_vars)
@@ -130,13 +133,13 @@ class System(object):
         self.display_obj.clear_display(g_vars)
 
         text = time.strftime("%A")
-        g_vars['draw'].text((1, 0), text, font=g_vars['font12'], fill=255)
+        g_vars['draw'].text((1, 0), text, font=FONT12, fill=255)
         text = time.strftime("%e %b %Y")
-        g_vars['draw'].text((1, 13), text, font=g_vars['font12'], fill=255)
+        g_vars['draw'].text((1, 13), text, font=FONT12, fill=255)
         text = time.strftime("%X")
-        g_vars['draw'].text((1, 26), text, font=g_vars['fontb14'], fill=255)
+        g_vars['draw'].text((1, 26), text, font=FONTB14, fill=255)
         text = time.strftime("%Z")
-        g_vars['draw'].text((1, 41), "TZ: " + text, font=g_vars['font12'], fill=255)
+        g_vars['draw'].text((1, 41), "TZ: " + text, font=FONT12, fill=255)
 
         # Back button
         self.nav_button_obj.back()
