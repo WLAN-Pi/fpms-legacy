@@ -3,7 +3,13 @@ import os.path
 import subprocess
 import bakebit_128_64_oled as oled
 
-from modules.pages.simpletable import *
+from modules.pages.simpletable import SimpleTable
+from modules.constants import (
+    KISMET_CTL_FILE,
+    BETTERCAP_CTL_FILE,
+    PROFILER_CTL_FILE,
+)
+
 
 class App(object):
 
@@ -16,7 +22,7 @@ class App(object):
         '''
         Function to start/stop and get status of Kismet processes
         '''
-        kismet_ctl_file = g_vars['kismet_ctl_file']
+        kismet_ctl_file = KISMET_CTL_FILE
 
         # check resource is available
         if not os.path.isfile(kismet_ctl_file):
@@ -74,7 +80,7 @@ class App(object):
         '''
         Function to start/stop and get status of Kismet processes
         '''
-        bettercap_ctl_file = g_vars['bettercap_ctl_file']
+        bettercap_ctl_file = BETTERCAP_CTL_FILE
 
         # check resource is available
         if not os.path.isfile(bettercap_ctl_file):
@@ -132,7 +138,7 @@ class App(object):
         '''
         Function to start/stop and get status of Profiler processe
         '''
-        profiler_ctl_file = g_vars['profiler_ctl_file']
+        profiler_ctl_file = PROFILER_CTL_FILE
 
         # check resource is available
         if not os.path.isfile(profiler_ctl_file):

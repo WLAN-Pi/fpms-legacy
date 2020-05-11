@@ -32,17 +32,15 @@ from modules.constants import (
     WCONSOLE_MODE_FILE,
     HOTSPOT_MODE_FILE,
     WIPERF_MODE_FILE,
-
+    BUTTONS_FILE,
 )
 
-from modules.nav.navigation import *
-from modules.nav.buttons import *
-
-from modules.pages.display import *
-from modules.pages.homepage import *
-from modules.pages.simpletable import * 
-from modules.pages.pagedtable import * 
-from modules.pages.page import *
+from modules.nav.buttons import Button
+from modules.pages.display import Display
+from modules.pages.homepage import HomePage
+from modules.pages.simpletable import SimpleTable 
+from modules.pages.pagedtable import PagedTable 
+from modules.pages.page import Page
 
 from modules.network import *
 from modules.utils import *
@@ -50,8 +48,6 @@ from modules.modes import *
 from modules.system import *
 
 from modules.apps import *
-
-
 
 ####################################
 # Initialize the SEED OLED display
@@ -94,31 +90,8 @@ g_vars = {
     'last_button_press_count': 0, # copy of count of button pressses used in main loop
     'pageSleepCountdown': PAGE_SLEEP, # Set page sleep control
     'home_page_name': "Home",       # Display name for top level menu
+    'key_map': 'classic',      # key map options: classic, alt, symbols
 
-    #######################################
-    # Initialize file variables
-    #######################################
-    # helper scripts to launch misc processes
-    'kismet_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/kismet_ctl',
-    'bettercap_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/bettercap_ctl',
-    'profiler_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/profiler_ctl',
-
-    # cdp and lldp networkinfo data file names
-    'lldpneigh_file': '/tmp/lldpneigh.txt',
-    'cdpneigh_file': '/tmp/cdpneigh.txt',
-    'ipconfig_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/ipconfig.sh 2>/dev/null',
-    'reachability_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/reachability.sh',
-    'publicip_cmd': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/publicip.sh',
-
-    # Linux programs
-    'ifconfig_file':'/sbin/ifconfig',
-    'iw_file': '/usr/sbin/iw',
-    'ufw_file': '/usr/sbin/ufw',
-    'ethtool_file': '/sbin/ethtool',
-
-    # options: classic, alt, symbols
-    'buttons_file': "/home/wlanpi/fpms/buttons.txt",
-    'key_map': 'classic',
 }
 
 ############################
@@ -137,8 +110,8 @@ if os.path.isfile(WIPERF_MODE_FILE):
     g_vars['current_mode'] = 'wiperf'
 
 # if the buttons file exists, read content
-if os.path.isfile(g_vars['buttons_file']):
-    with open(g_vars['buttons_file'], 'r') as f:
+if os.path.isfile(BUTTONS_FILE):
+    with open(BUTTONS_FILE, 'r') as f:
         key_map = f.readline()
         g_vars['key_map'] = key_map
 

@@ -6,7 +6,15 @@ import re
 from modules.pages.display import *
 from modules.nav.navigation import *
 from modules.pages.simpletable import *
-from modules.pages.pagedtable import *  
+from modules.pages.pagedtable import *
+from modules.constants import (
+    LLDPNEIGH_FILE,
+    CDPNEIGH_FILE,
+    IPCONFIG_FILE,
+    PUBLICIP_CMD,
+    IFCONFIG_FILE,
+    IW_FILE,
+)
 
 class Network(object):
 
@@ -26,8 +34,8 @@ class Network(object):
         Return a list of network interfaces found to be up, with IP address if available
         '''
 
-        ifconfig_file = g_vars['ifconfig_file']
-        iw_file = g_vars['iw_file']
+        ifconfig_file = IFCONFIG_FILE
+        iw_file = IW_FILE
 
         try:
             ifconfig_info = subprocess.check_output(
@@ -95,8 +103,8 @@ class Network(object):
         Create pages to summarise WLAN interface info
         '''
 
-        ifconfig_file = g_vars['ifconfig_file']
-        iw_file = g_vars['iw_file']
+        ifconfig_file = IFCONFIG_FILE
+        iw_file = IW_FILE
 
 
         try:
@@ -194,7 +202,7 @@ class Network(object):
         '''
         Return IP configuration of eth0 including IP, default gateway, DNS servers
         '''
-        ipconfig_file = g_vars['ipconfig_file']
+        ipconfig_file = IPCONFIG_FILE
 
         eth0_ipconfig_info = []
 
@@ -237,8 +245,8 @@ class Network(object):
         Display untagged VLAN number on eth0
         Todo: Add tagged VLAN info
         '''
-        lldpneigh_file = g_vars['lldpneigh_file']
-        cdpneigh_file = g_vars['cdpneigh_file']
+        lldpneigh_file = LLDPNEIGH_FILE
+        cdpneigh_file = CDPNEIGH_FILE
 
         vlan_info = []
 
@@ -274,7 +282,7 @@ class Network(object):
         '''
         Display LLDP neighbour on eth0
         '''
-        lldpneigh_file = g_vars['lldpneigh_file']
+        lldpneigh_file = LLDPNEIGH_FILE
 
         neighbour_info = []
         neighbour_cmd = "sudo cat " + lldpneigh_file
@@ -316,7 +324,7 @@ class Network(object):
         '''
         Display CDP neighbour on eth0
         '''
-        cdpneigh_file = g_vars['cdpneigh_file']
+        cdpneigh_file = CDPNEIGH_FILE
 
         neighbour_info = []
         neighbour_cmd = "sudo cat " + cdpneigh_file
@@ -357,7 +365,7 @@ class Network(object):
         '''
         Shows public IP address and related details, works with any interface with internet connectivity
         '''
-        publicip_cmd = g_vars['publicip_cmd']
+        publicip_cmd = PUBLICIP_CMD
 
         publicip_info = []
 

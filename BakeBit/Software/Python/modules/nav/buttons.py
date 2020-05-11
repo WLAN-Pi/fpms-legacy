@@ -3,6 +3,9 @@ import types
 from modules.pages.homepage import *
 from modules.pages.page import *
 from modules.pages.simpletable import * 
+from modules.constants import (
+    BUTTONS_FILE,
+)
 
 class Button(object):
 
@@ -107,7 +110,7 @@ class Button(object):
             self.page_obj.draw_page(g_vars, menu)
     
     def button_set(self, g_vars, keyword, results):
-        with open(g_vars['buttons_file'], 'w') as f:
+        with open(BUTTONS_FILE, 'w') as f:
             f.write(keyword)
             g_vars['key_map'] = keyword
 

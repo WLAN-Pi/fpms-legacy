@@ -6,7 +6,7 @@ constants.py - shared constant vars
 
 from PIL import ImageFont
 
-__version__ = "2.00 (alpha-7)"
+__version__ = "2.00 (alpha-8)"
 __author__ = "wifinigel@gmail.com"
 
 PAGE_SLEEP = 300             # Time in secs before sleep
@@ -35,26 +35,24 @@ WCONSOLE_SWITCHER_FILE ='/etc/wconsole/wconsole_switcher'
 HOTSPOT_SWITCHER_FILE = '/etc/wlanpihotspot/hotspot_switcher'
 WIPERF_SWITCHER_FILE = '/home/wlanpi/wiperf/wiperf_switcher'
 
-"""
 # helper scripts to launch misc processes
-'kismet_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/kismet_ctl',
-'bettercap_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/bettercap_ctl',
-'profiler_ctl_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/profiler_ctl',
+KISMET_CTL_FILE = '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/kismet_ctl'
+BETTERCAP_CTL_FILE = '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/bettercap_ctl'
+PROFILER_CTL_FILE = '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/profiler_ctl'
 
 # cdp and lldp networkinfo data file names
-'lldpneigh_file': '/tmp/lldpneigh.txt',
-'cdpneigh_file': '/tmp/cdpneigh.txt',
-'ipconfig_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/ipconfig.sh 2>/dev/null',
-'reachability_file': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/reachability.sh',
-'publicip_cmd': '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/publicip.sh',
+LLDPNEIGH_FILE = '/tmp/lldpneigh.txt'
+CDPNEIGH_FILE = '/tmp/cdpneigh.txt'
+IPCONFIG_FILE = '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/ipconfig.sh 2>/dev/null'
+REACHABILITY_FILE = '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/reachability.sh'
+PUBLICIP_CMD = '/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/publicip.sh'
 
 # Linux programs
-'ifconfig_file':'/sbin/ifconfig',
-'iw_file': '/usr/sbin/iw',
-'ufw_file': '/usr/sbin/ufw',
-'ethtool_file': '/sbin/ethtool',
+IFCONFIG_FILE = '/sbin/ifconfig'
+IW_FILE = '/usr/sbin/iw'
+UFW_FILE = '/usr/sbin/ufw'
+ETHTOOL_FILE = '/sbin/ethtool'
 
-# options: classic, alt, symbols
-'buttons_file': "/home/wlanpi/fpms/buttons.txt",
-'key_map': 'classic',
-"""
+# key map file
+BUTTONS_FILE = "/home/wlanpi/fpms/buttons.txt"
+

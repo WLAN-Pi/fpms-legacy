@@ -3,7 +3,7 @@ import os.path
 import subprocess
 import bakebit_128_64_oled as oled
 
-from modules.pages.simpletable import *
+from modules.pages.simpletable import SimpleTable
 from modules.constants import (
     WCONSOLE_SWITCHER_FILE,
     HOTSPOT_SWITCHER_FILE,

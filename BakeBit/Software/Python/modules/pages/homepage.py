@@ -13,6 +13,7 @@ from modules.constants import (
     SMART_FONT,
     FONT11,
     FONT14,
+    ETHTOOL_FILE,
 )
 
 class HomePage(object):
@@ -68,7 +69,7 @@ class HomePage(object):
 
     def home_page(self, g_vars, menu):
 
-        ethtool_file = g_vars['ethtool_file']
+        ethtool_file = ETHTOOL_FILE
 
         g_vars['drawing_in_progress'] = True
         g_vars['display_state'] = 'page'

@@ -2,7 +2,11 @@ import subprocess
 import os.path
 
 from modules.pages.simpletable import * 
-from modules.pages.pagedtable import * 
+from modules.pages.pagedtable import *
+from modules.constants import (
+    REACHABILITY_FILE,
+    UFW_FILE,
+)
 
 class Utils(object):
 
@@ -62,7 +66,7 @@ class Utils(object):
         Check if default gateway, internet and DNS are reachable and working
         '''
         reachability_info = []
-        reachability_cmd = "sudo " + g_vars['reachability_file']
+        reachability_cmd = "sudo " + REACHABILITY_FILE
 
         try:
             reachability_output = subprocess.check_output(
@@ -166,7 +170,7 @@ class Utils(object):
         '''
         Return a list ufw ports
         '''
-        ufw_file = g_vars['ufw_file']
+        ufw_file = UFW_FILE
 
         ufw_info = []
 
