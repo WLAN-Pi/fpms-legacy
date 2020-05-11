@@ -21,7 +21,9 @@ oled-start: NanoHatOLED
 	chmod +x $@
 
 install: NanoHatOLED oled-start
-	mkdir -p $(install_dir)
+	mkdir -p $(install_dir) \
+		$(DESTDIR)$(prefix)/bin/oled-start \
+		$(DESTDIR)/lib/systemd/system
 	cp -rf $(filter-out debian fpms.service,$(wildcard *)) $(install_dir)
 	ln -s ../share/fpms/oled-start $(DESTDIR)$(prefix)/bin/oled-start
 	install fpms.service $(DESTDIR)/lib/systemd/system
@@ -33,4 +35,6 @@ clean:
 distclean: clean
 
 uninstall:
-	-rm -rf $(install_dir)
+	-rm -rf $(install_dir) \
+		$(DESTDIR)$(prefix)/bin/oled-start \
+		$(DESTDIR)/lib/systemd/system
