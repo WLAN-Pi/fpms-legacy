@@ -7,22 +7,14 @@ fi
 
 gcc Source/daemonize.c Source/main.c -lrt -lpthread -o NanoHatOLED
 
-if [ ! -f /usr/local/bin/oled-start ]; then
-    cat >/usr/local/bin/oled-start <<EOL
+if [ ! -f $DESTDIR/usr/local/bin/oled-start ]; then
+    cat >$DESTDIR/usr/local/bin/oled-start <<EOL
 #!/bin/sh
+cd $PWD
+./NanoHatOLED
 EOL
-    echo "cd $PWD" >> /usr/local/bin/oled-start
-    echo "./NanoHatOLED" >> /usr/local/bin/oled-start
-    sed -i -e '$i \/usr/local/bin/oled-start\n' /etc/rc.local
-    chmod 755 /usr/local/bin/oled-start
+
+    cp fpms.service $DESTDIR/lib/systemd/system
+    chmod 755 $DESTDIR/usr/local/bin/oled-start
 fi
-
-
-if [ ! -f BakeBit/Script/install.sh ]; then
-    git submodule init
-    git submodule update
-fi
-
-cd BakeBit/Script/
-sudo ./install.sh
 

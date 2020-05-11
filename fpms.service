@@ -1,0 +1,8 @@
+[Unit]
+Description=FPMS daemon responsible for OLED management
+
+[Service]
+ExecStart=/usr/local/bin/oled-start
+
+[Install]
+WantedBy=multi-user.target
