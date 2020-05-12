@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <signal.h>
-#include <time.h>  
+#include <time.h>
 #include <pthread.h>
 #include <dirent.h>
 #include <stdarg.h>
@@ -68,34 +68,36 @@ void log2file(const char *fmt, ...)
 const char* python_file = "bakebit_nanohat_oled.py";
 static int get_work_path(char* buff, int maxlen) {
     ssize_t len = readlink("/proc/self/exe", buff, maxlen);
-    if (len == -1 || len == maxlen) {                         
-        return -1;                                            
-    }                                
+    if (len == -1 || len == maxlen) {
+        return -1;
+    }
     buff[len] = '\0';
-                        
+
     char *pos = strrchr(buff, '/');
-    if (pos != 0) {                   
-       *pos = '\0';                   
-    }              
-                   
+    if (pos != 0) {
+       *pos = '\0';
+    }
+
     return 0;
-}            
+}
 static char workpath[255];
 static int py_pids[128];
 static int pid_count = 0;
-extern int find_pid_by_name( char* ProcName, int* foundpid);
+extern int find_pid_by_name( char* ProcName, const char* proc_argument, int* foundpid);
+#define CMDLINE_LENGTH 60
 void send_signal_to_python_process(int signal) {
     int i, rv;
     if (pid_count == 0) {
-        rv = find_pid_by_name( "python3.5", py_pids);
+        rv = find_pid_by_name( "python3", python_file,  py_pids);
         for(i=0; py_pids[i] != 0; i++) {
-            log2file("found python pid: %d\n", py_pids[i]);
+            log2file("found python3 pid: %d\n", py_pids[i]);
             pid_count++;
         }
     }
     if (pid_count > 0) {
         for(i=0; i<pid_count; i++) {
             if (kill(py_pids[i], signal) != 0) { //maybe pid is invalid
+                log2file("invalid PID");
                 pid_count = 0;
                 break;
             }
@@ -125,7 +127,7 @@ int load_python_view() {
     return 0;
 }
 
-int find_pid_by_name( char* ProcName, int* foundpid) {
+int find_pid_by_name( char* ProcName, const char* proc_argument, int* foundpid) {
     DIR             *dir;
     struct dirent   *d;
     int             pid, i;
@@ -133,7 +135,7 @@ int find_pid_by_name( char* ProcName, int* foundpid) {
     int pnlen;
 
     i = 0;
-    foundpid[0] = 0;
+    foundpid[i] = 0;
     pnlen = strlen(ProcName);
 
     /* Open the /proc directory. */
@@ -149,8 +151,12 @@ int find_pid_by_name( char* ProcName, int* foundpid) {
 
         char exe [PATH_MAX+1];
         char path[PATH_MAX+1];
+        char cmdline_path[PATH_MAX+1];
+        char *cmdline = (char*)malloc(sizeof(CMDLINE_LENGTH+1));
+        int bufread;
         int len;
         int namelen;
+        FILE *cmdline_fd;
 
         /* See if this is a process */
         if ((pid = atoi(d->d_name)) == 0)       continue;
@@ -171,9 +177,29 @@ int find_pid_by_name( char* ProcName, int* foundpid) {
 
         if(!strncmp(ProcName, s, pnlen)) {
             /* to avoid subname like search proc tao but proc taolinke matched */
-            if(s[pnlen] == ' ' || s[pnlen] == '\0') {
-                foundpid[i] = pid;
-                i++;
+            if(s[pnlen] == ' ' || s[pnlen] == '\0' || s[pnlen] == '.') {
+                /* make sure this is the python instance we are looking for */
+                snprintf(cmdline_path, sizeof(cmdline_path), "/proc/%s/cmdline", d->d_name);
+                if ((cmdline_fd = fopen(cmdline_path, "r")) == NULL)
+                    continue;
+
+                bufread = fread(cmdline, sizeof(char), CMDLINE_LENGTH, cmdline_fd);
+
+                // Skip pythonX portion of cmdline
+                while (*cmdline++ != 0);
+
+                // Check argument
+                while (*cmdline != 0 && *proc_argument != 0) {
+                    if (*cmdline != *proc_argument)
+                        break;
+                    ++cmdline;
+                    ++proc_argument;
+                }
+
+                if (*proc_argument == 0) {
+                    foundpid[i] = pid;
+                    i++;
+                }
             }
         }
     }
