@@ -50,6 +50,10 @@ The following steps must also be completed:
 
         sudo python3 -m pip install pillow
 
+    6. Remove the network info cron entry "/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh" by editing cron with:
+
+        sudo crontab -e
+
     7. Sync filesystem:
 
         sudo sync
