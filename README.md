@@ -45,12 +45,21 @@ The following steps must also be completed:
 
         cd ~
         sudo rm -rf ./NanoHatOLED
+    
+    5. Install the smbus python3 package:
 
-    5. Sync filesystem:
+        sudo apt-get update
+        sudo apt-get install python3-smbus
+    
+    6. Install the python module pillow:
+
+        sudo python3 -m pip install pillow
+
+    7. Sync filesystem:
 
         sudo sync
 
-    6. Power off/on (not reboot from CLI ) the WLAN Pi 
+    8. Power off/on (not reboot from CLI ) the WLAN Pi 
 
 Once the fpms package has been successfully installed and is operational, it may be updated using the WLAN Pi package admin tool 'pkg_admin":
 
