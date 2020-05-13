@@ -20,10 +20,17 @@ import subprocess
 import signal
 import os
 import os.path
+import sys
 import socket
 import random
 
+# Check we're running as root
+if not os.geteuid()==0:
+    print("This script must be run as root - exiting")
+    sys.exit()
+
 from modules.constants import (
+    SCRIPT_PATH,
     PAGE_SLEEP,
     PAGE_HEIGHT,
     PAGE_WIDTH,
