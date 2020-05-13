@@ -1,7 +1,7 @@
 #!/bin/bash
 # Cleans networkinfo cache text files 
 
-DIRECTORY="/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo"
+DIRECTORY=$1
 CAPTUREFILE="/tmp/cdpneightcpdump.cap"
 OUTPUTFILE="/tmp/cdpneigh.txt"
 
