@@ -15,7 +15,7 @@ for pid in $(pidof -x $0); do
     fi
 done
 
-DIRECTORY="/home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo"
+DIRECTORY=$1
 CAPTUREFILE="/tmp/lldpneightcpdump.cap"
 OUTPUTFILE="/tmp/lldpneigh.txt"
 
