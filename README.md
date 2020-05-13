@@ -25,33 +25,25 @@ The following steps must also be completed:
         to:
 
             #!/bin/sh
-            cd /home/wlanpi/fpms
+            cd /usr/local/fpms
             ./NanoHatOLED
 
-    2. Run "sudo crontab -e" and change :
-
-            @reboot /home/wlanpi/NanoHatOLED/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh
-
-        to:
-
-            @reboot /home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh
-
-    3. Clone the "fpms" repo as wlanpi user:
+    2. Clone the "fpms" repo as wlanpi user:
 
         cd ~
         git clone https://github.com/WLAN-Pi/fpms.git
 
-    4. Remove the old NanoHatOLED folder:
+    3. Remove the old NanoHatOLED folder:
 
         cd ~
         sudo rm -rf ./NanoHatOLED
     
-    5. Install the smbus python3 package:
+    4. Install the smbus python3 package:
 
         sudo apt-get update
         sudo apt-get install python3-smbus
     
-    6. Install the python module pillow:
+    5. Install the python module pillow:
 
         sudo python3 -m pip install pillow
 
