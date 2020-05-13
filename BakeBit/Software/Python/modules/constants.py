@@ -62,7 +62,7 @@ LLDPNEIGH_FILE = '/tmp/lldpneigh.txt'
 CDPNEIGH_FILE = '/tmp/cdpneigh.txt'
 IPCONFIG_FILE = SCRIPT_PATH + '/scripts/networkinfo/ipconfig.sh 2>/dev/null'
 REACHABILITY_FILE = SCRIPT_PATH + '/scripts/networkinfo/reachability.sh'
-PUBLICIP_CMD = SCRIPT_PATH + 'scripts/networkinfo/publicip.sh'
+PUBLICIP_CMD = SCRIPT_PATH + '/scripts/networkinfo/publicip.sh'
 
 # key map file
 BUTTONS_FILE = SCRIPT_PATH + '/buttons.txt'
