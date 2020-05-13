@@ -15,13 +15,6 @@ sudo apt-get install python3-smbus
 sudo python3 -m pip install pillow
 ```
 
-The repo may be installed on to a WLAN Pi by cloning this repo as the wlanpi user:
-
-```
-cd ~
-git clone --single-branch --branch master https://github.com/WLAN-Pi/fpms.git
-```
-
 The following steps must also be completed:
 
     1. Edit the oled-start file : "sudo nano /usr/local/bin/oled-start"
@@ -40,7 +33,7 @@ The following steps must also be completed:
 
     2. Clone the "fpms" repo as wlanpi user:
 
-        cd ~
+        cd /usr/local
         git clone https://github.com/WLAN-Pi/fpms.git
 
     3. Remove the old NanoHatOLED folder:
@@ -92,7 +85,7 @@ The move to python 3.5 required several file updates to provide support for the 
     cd ~/NanoHatOLED
     gcc Source/daemonize.c Source/main.c -lrt -lpthread -o NanoHatOLED
 
-    4. Update syntax errors thorwn up by the new version of python in the following files:
+    4. Update syntax errors thrown up by the new version of python in the following files:
         NanoHatOLED/BakeBit/Software/Python/bakebit_128_64_oled.py
         NanoHatOLED/BakeBit/Software/Python/bakebit_nanohat_oled.py
 

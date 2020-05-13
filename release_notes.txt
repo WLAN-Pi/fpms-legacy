@@ -1,4 +1,4 @@
-v2.00-alpha - Move to single FPMS & rebuilt as modular code 
+v2.0.0 - Move to single FPMS & rebuilt as modular code 
 
 *** Note ****
 If you are moving from the previous Bakebit/NanoHatOLED GitHub repos, you must also perform the following steps once you have installed FPMS using pkg_admin:
@@ -11,37 +11,43 @@ sudo apt-get update
 sudo apt-get install python3-smbus
 sudo python3 -m pip install pillow
 
-To activate fpms:
+The following steps must also be completed:
 
-1. Edit the oled-start file : "sudo nano /usr/local/bin/oled-start"
+    1. Edit the oled-start file : "sudo nano /usr/local/bin/oled-start"
 
-    from:
+        from:
 
-        #!/bin/sh
-        cd /home/wlanpi/NanoHatOLED
-        ./NanoHatOLED
+            #!/bin/sh
+            cd /home/wlanpi/NanoHatOLED
+            ./NanoHatOLED
 
-    to:
+        to:
 
-        #!/bin/sh
-        cd /home/wlanpi/fpms
-        ./NanoHatOLED
+            #!/bin/sh
+            cd /usr/local/fpms
+            ./NanoHatOLED
 
-2. Run "sudo crontab -e" and change :
+    2. Clone the "fpms" repo as wlanpi user:
 
-        @reboot /home/wlanpi/NanoHatOLED/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh
+        cd /usr/local
+        git clone https://github.com/WLAN-Pi/fpms.git
 
-    to:
+    3. Remove the old NanoHatOLED folder:
 
-        @reboot /home/wlanpi/fpms/BakeBit/Software/Python/scripts/networkinfo/networkinfocron.sh
+        cd ~
+        sudo rm -rf ./NanoHatOLED
+    
+    4. Install the smbus python3 package:
 
-3. Remove the old NanoHatOLED folder:
+        sudo apt-get update
+        sudo apt-get install python3-smbus
+    
+    5. Install the python module pillow:
 
-    cd ~
-    sudo rm -rf ./NanoHatOLED
+        sudo python3 -m pip install pillow
 
-4. Sync filesystem:
+    7. Sync filesystem:
 
-    sudo sync
+        sudo sync
 
-5. Power off/on (not reboot from CLI ) the WLAN Pi 
+    8. Power off/on (not reboot from CLI ) the WLAN Pi 
