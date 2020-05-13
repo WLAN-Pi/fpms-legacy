@@ -561,6 +561,11 @@ signal.signal(signal.SIGUSR1, receive_signal)
 signal.signal(signal.SIGUSR2, receive_signal)
 signal.signal(signal.SIGALRM, receive_signal)
 
+# Start the netinfocron script as a background process (no longer uses cron)
+networkcroninfo_file = SCRIPT_PATH + "/scripts/networkinfo/networkinfocron.sh"
+networkscript_dir = SCRIPT_PATH + "/scripts/networkinfo"
+subprocess.Popen([networkcroninfo_file, networkscript_dir])
+
 ##############################################################################
 # Constant 'while' loop to paint images on display or execute actions in
 # response to selections made with buttons. When any of the 3 WLANPi buttons
