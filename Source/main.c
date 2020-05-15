@@ -183,9 +183,17 @@ int find_pid_by_name( char* ProcName, const char* proc_argument, int* foundpid) 
                 // Check argument
                 int p = 0;
                 while (*cmdline != 0 && proc_argument[p] != 0) {
-                    if (*cmdline != proc_argument[p]) {
-                        ++cmdline;
+                    if (*cmdline == '/') {
                         p = 0;
+                        ++cmdline;
+                        continue;
+                    }
+                    else if (*cmdline != proc_argument[p]) {
+                        if (p == 0)
+                            ++cmdline;
+                        else
+                            p = 0;
+
                         continue;
                     }
                     ++cmdline;
