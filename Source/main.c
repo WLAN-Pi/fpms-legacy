@@ -67,18 +67,10 @@ void log2file(const char *fmt, ...)
 
 const char* python_file = "bakebit_nanohat_oled.py";
 static int get_work_path(char* buff, int maxlen) {
-    ssize_t len = readlink("/proc/self/exe", buff, maxlen);
-    if (len == -1 || len == maxlen) {
-        return -1;
-    }
-    buff[len] = '\0';
-
-    char *pos = strrchr(buff, '/');
-    if (pos != 0) {
-       *pos = '\0';
-    }
-
-    return 0;
+    if (getcwd(buff, maxlen) != NULL)
+        return 0; /* success */
+    else
+        return errno; /* error */
 }
 static char workpath[255];
 static int py_pids[128];
@@ -189,14 +181,18 @@ int find_pid_by_name( char* ProcName, const char* proc_argument, int* foundpid) 
                 while (*cmdline++ != 0);
 
                 // Check argument
-                while (*cmdline != 0 && *proc_argument != 0) {
-                    if (*cmdline != *proc_argument)
-                        break;
+                int p = 0;
+                while (*cmdline != 0 && proc_argument[p] != 0) {
+                    if (*cmdline != proc_argument[p]) {
+                        ++cmdline;
+                        p = 0;
+                        continue;
+                    }
                     ++cmdline;
-                    ++proc_argument;
+                    ++p;
                 }
 
-                if (*proc_argument == 0) {
+                if (proc_argument[p] == 0) {
                     foundpid[i] = pid;
                     i++;
                 }
@@ -291,13 +287,16 @@ int main(int argc, char** argv) {
     if (isAlreadyRunning() == 1) {
         exit(3);
     }
-    daemonize( "nanohat-oled" );
 
     int ret = get_work_path(workpath, sizeof(workpath));
     if (ret != 0) {
-        log2file("get_work_path ret error\n");
+        log2file("get_work_path str(errno) = %s\n", strerror(ret));
         return 1;
     }
+    log2file("work_dir = %s\n", workpath);
+
+    daemonize( "nanohat-oled" );
+
     sleep(3);
 
     epfd = epoll_create(1);

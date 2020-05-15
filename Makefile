@@ -4,7 +4,9 @@ CC = gcc
 prefix=/usr/local
 default_prefix=/usr/local
 SRCS := $(wildcard Source/*.c)
-install_dir = $(DESTDIR)$(prefix)/share/fpms
+
+install_data_dir = $(DESTDIR)$(datadir)/fpms
+install_bin_dir = $(DESTDIR)$(bindir)
 
 LDCFLAGS += -lrt -lpthread
 
@@ -17,19 +19,21 @@ NanoHatOLED: $(SRCS)
 oled-start: NanoHatOLED
 	@echo "Create oled-start script"
 	$(file > $@,#!/bin/sh)
-	$(file >> $@,cd $(install_dir))
-	$(file >> $@,./$<)
+	$(file >> $@,$(install_bin_dir)/$<)
 	chmod +x $@
 
 install: NanoHatOLED oled-start
-	mkdir -p $(install_dir) \
-		$(DESTDIR)$(prefix)/bin/oled-start \
-		$(DESTDIR)/lib/systemd/system
-	cp -rf $(filter-out debian fpms.service fpms.service.template,$(wildcard *)) $(install_dir)
-	install oled-start $(DESTDIR)$(prefix)/bin/oled-start
+	cp -rf $(filter-out debian fpms.service fpms.service.template $^,$(wildcard *)) $(install_data_dir)
+	install oled-start $(install_bin_dir)/oled-start
 	# Correct the prefix on fpms.service ExecStart
 	sed "s#$(default_prefix)#$(prefix)#g" fpms.service.template > fpms.service
 	install fpms.service $(DESTDIR)/lib/systemd/system
+
+installdirs:
+	mkdir -p $(install_bin_dir) \
+		$(install_data_dir) \
+		$(install_bin_dir)/oled-start \
+		$(DESTDIR)/lib/systemd/system
 
 clean:
 	-rm -f NanoHatOLED
@@ -39,6 +43,6 @@ clean:
 distclean: clean
 
 uninstall:
-	-rm -rf $(install_dir) \
-		$(DESTDIR)$(prefix)/bin/oled-start \
+	-rm -rf $(install_data_dir) \
+		$(install_bin_dir)/oled-start \
 		$(DESTDIR)/lib/systemd/system
