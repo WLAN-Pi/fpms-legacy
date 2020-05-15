@@ -2,8 +2,8 @@
 Description=FPMS daemon responsible for OLED management
 
 [Service]
-ExecStart=/usr/local/bin/oled-start
-WorkingDirectory=/usr/local/share/fpms
+ExecStart=@bindir@/oled-start
+WorkingDirectory=@datadir@/fpms
 PIDfile=/var/run/nanohat-oled.pid
 Type=forking
 

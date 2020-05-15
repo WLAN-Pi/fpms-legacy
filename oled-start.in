@@ -1,0 +1,2 @@
+#!/bin/sh
+@bindir@/@binary_name@
