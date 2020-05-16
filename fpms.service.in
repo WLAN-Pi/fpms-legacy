@@ -1,0 +1,11 @@
+[Unit]
+Description=FPMS daemon responsible for OLED management
+
+[Service]
+ExecStart=@bindir@/oled-start
+WorkingDirectory=@datadir@/fpms
+PIDfile=/var/run/nanohat-oled.pid
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
