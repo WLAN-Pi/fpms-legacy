@@ -112,7 +112,7 @@ void* threadfunc(char* arg) {
 
 int load_python_view() {
     int ret;
-    char* cmd = (char*)malloc(255);
+    char* cmd = (char*)malloc(500);
     sprintf(cmd, "cd %s/BakeBit/Software/Python && python3 %s 2>&1 | tee /tmp/nanoled-python.log", workpath, python_file);
     ret = pthread_create(&view_thread_id, NULL, (void*)threadfunc,cmd);
     if(ret) {
@@ -147,7 +147,7 @@ int find_pid_by_name( char* ProcName, const char* proc_argument, int* foundpid) 
         char exe [PATH_MAX+1];
         char path[PATH_MAX+1];
         char cmdline_path[PATH_MAX+1];
-        char *cmdline = (char*)malloc(sizeof(CMDLINE_LENGTH+1));
+        char *cmdline = (char*)malloc(sizeof(char)*(CMDLINE_LENGTH+1));
         int bufread;
         int len;
         int namelen;
