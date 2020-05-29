@@ -95,6 +95,9 @@ void send_signal_to_python_process(int signal) {
             }
         }
     }
+    else {
+        log2file("no PID found");
+    }
 }
 
 pthread_t view_thread_id = 0;
@@ -109,7 +112,7 @@ void* threadfunc(char* arg) {
 
 int load_python_view() {
     int ret;
-    char* cmd = (char*)malloc(255);
+    char* cmd = (char*)malloc(500);
     sprintf(cmd, "cd %s/BakeBit/Software/Python && python3 %s 2>&1 | tee /tmp/nanoled-python.log", workpath, python_file);
     ret = pthread_create(&view_thread_id, NULL, (void*)threadfunc,cmd);
     if(ret) {
@@ -144,7 +147,7 @@ int find_pid_by_name( char* ProcName, const char* proc_argument, int* foundpid) 
         char exe [PATH_MAX+1];
         char path[PATH_MAX+1];
         char cmdline_path[PATH_MAX+1];
-        char *cmdline = (char*)malloc(sizeof(CMDLINE_LENGTH+1));
+        char *cmdline = (char*)malloc(sizeof(char)*(CMDLINE_LENGTH+1));
         int bufread;
         int len;
         int namelen;
@@ -292,20 +295,12 @@ int main(int argc, char** argv) {
     int i, n;
     char ch;
 
-    if (isAlreadyRunning() == 1) {
-        exit(3);
-    }
-
     int ret = get_work_path(workpath, sizeof(workpath));
     if (ret != 0) {
         log2file("get_work_path str(errno) = %s\n", strerror(ret));
         return 1;
     }
     log2file("work_dir = %s\n", workpath);
-
-    daemonize( "nanohat-oled" );
-
-    sleep(3);
 
     epfd = epoll_create(1);
     if (epfd < 0) {
