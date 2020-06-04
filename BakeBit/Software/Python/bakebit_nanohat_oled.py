@@ -38,6 +38,7 @@ from modules.constants import (
     MENU_VERSION,
     MODE_FILE,
     BUTTONS_FILE,
+    WLANPI_IMAGE_FILE,
 )
 
 from modules.nav.buttons import Button
@@ -143,12 +144,20 @@ if os.path.isfile(BUTTONS_FILE):
 ##################################
 
 # get & the current version of WLANPi image
-ver_cmd = "grep \"WLAN Pi v\" /var/www/html/index.html | sed \"s/<[^>]\+>//g\""
-try:
-    g_vars['wlanpi_ver'] = subprocess.check_output(ver_cmd, shell=True).decode().strip()
-except:
-    g_vars['wlanpi_ver'] = "unknown"
-        
+g_vars['wlanpi_ver'] = "unknown"
+
+if os.path.isfile(WLANPI_IMAGE_FILE):
+    with open(WLANPI_IMAGE_FILE, 'r') as f:
+        lines = f.readlines()
+    
+    # pull out the version number for the FPMS home page
+    for line in lines:
+        (name, value) = line.split("=")
+        if name=="VERSION":
+            version = value.strip()
+            g_vars['wlanpi_ver'] = "WLAN Pi v" + version[1:-1]
+            break
+
 # get hostname
 try:
     g_vars['hostname'] = subprocess.check_output('hostname', shell=True).decode()
@@ -564,7 +573,8 @@ def receive_signal(signum, stack, g_vars=g_vars):
 ###############################################################################
 
 # First time around (power-up), draw logo on display
-rogues_gallery = [ 'images/wlanprologo.png', 'images/jolla.png', 'images/wifinigel.png', 'images/jiribrejcha.png']
+rogues_gallery = [ 'images/wlanprologo.png', 'images/wlanprologo.png', 'images/wlanprologo.png', 'images/wlanprologo.png',
+    'images/jolla.png', 'images/wifinigel.png', 'images/jiribrejcha.png']
 random_image = random.choice(rogues_gallery)
 image0 = Image.open(random_image).convert('1')
 
