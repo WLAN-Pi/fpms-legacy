@@ -36,9 +36,7 @@ from modules.constants import (
     PAGE_WIDTH,
     NAV_BAR_TOP,
     MENU_VERSION,
-    WCONSOLE_MODE_FILE,
-    HOTSPOT_MODE_FILE,
-    WIPERF_MODE_FILE,
+    MODE_FILE,
     BUTTONS_FILE,
 )
 
@@ -108,13 +106,31 @@ g_vars['image'] = Image.new('1', (PAGE_WIDTH, PAGE_HEIGHT))
 g_vars['draw'] = ImageDraw.Draw(g_vars['image'])
 g_vars['reboot_image'] = Image.open('images/reboot.png').convert('1')
 
-# check our current mode
-if os.path.isfile(WCONSOLE_MODE_FILE):
-    g_vars['current_mode'] = 'wconsole'
-if os.path.isfile(HOTSPOT_MODE_FILE):
-    g_vars['current_mode'] = 'hotspot'
-if os.path.isfile(WIPERF_MODE_FILE):
-    g_vars['current_mode'] = 'wiperf'
+#####################################
+# check our current operating mode
+#####################################
+
+valid_modes = ['classic', 'wconsole', 'hotspot', 'wiperf']
+
+# check mode file exists and read mode...create with classic mode if not
+if os.path.isfile(MODE_FILE):
+    with open(MODE_FILE, 'r') as f:
+        current_mode = f.readline()
+    
+    # send msg to stdout & exit if mode invalid
+    if not current_mode in valid_modes:
+        print("The mode read from {} is not a valid mode of operation: {}". format(MODE_FILE, current_mode))
+        sys.exit()
+
+    g_vars['current_mode'] = current_mode
+
+else:
+    # create the mode file as it does not exist
+    with open(MODE_FILE, 'w') as f:
+        current_mode = 'classic'
+        f.write(current_mode)
+    
+    g_vars['current_mode'] = current_mode
 
 # if the buttons file exists, read content
 if os.path.isfile(BUTTONS_FILE):

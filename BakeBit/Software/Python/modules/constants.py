@@ -8,7 +8,7 @@ from PIL import ImageFont
 import os
 import pathlib
 
-__version__ = "2.0.0"
+__version__ = "2.0.2"
 __author__ = "wifinigel@gmail.com"
 
 PAGE_SLEEP = 300             # Time in secs before sleep
@@ -42,9 +42,7 @@ UFW_FILE = '/usr/sbin/ufw'
 ETHTOOL_FILE = '/sbin/ethtool'
 
 # Mode changer scripts
-WCONSOLE_MODE_FILE = '/etc/wconsole/wconsole.on'
-HOTSPOT_MODE_FILE = '/etc/wlanpihotspot/hotspot.on'
-WIPERF_MODE_FILE = '/home/wlanpi/wiperf/wiperf.on'
+MODE_FILE = '/etc/wlanpi-state'
 
 WCONSOLE_SWITCHER_FILE ='/etc/wconsole/wconsole_switcher'
 HOTSPOT_SWITCHER_FILE = '/etc/wlanpihotspot/hotspot_switcher'
