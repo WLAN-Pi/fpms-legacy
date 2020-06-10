@@ -50,6 +50,7 @@ from modules.pages.page import Page
 
 from modules.network import *
 from modules.utils import *
+from modules.cloud_tests import CloudUtils
 from modules.modes import *
 from modules.system import *
 
@@ -205,6 +206,10 @@ def show_reachability():
 def show_speedtest():
     utils_obj = Utils(g_vars)
     utils_obj.show_speedtest(g_vars)
+
+def show_mist_test():
+    utils_obj = CloudUtils(g_vars)
+    utils_obj.test_mist_cloud(g_vars)
 
 def show_wpa_passphrase():
     utils_obj = Utils(g_vars)
@@ -415,6 +420,11 @@ menu = [
         {"name": "Speedtest", "action": [
             {"name": "Back", "action": go_up},
             {"name": "Start Test", "action": show_speedtest},
+        ]
+        },
+        {"name": "Mist Cloud", "action": [
+            {"name": "Back", "action": go_up},
+            {"name": "Start Test", "action": show_mist_test},
         ]
         },
         {"name": "WPA Passphrase", "action": show_wpa_passphrase},
