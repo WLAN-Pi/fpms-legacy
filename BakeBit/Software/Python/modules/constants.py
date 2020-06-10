@@ -47,7 +47,7 @@ MODE_FILE = '/etc/wlanpi-state'
 # Version file for WLAN Pi image
 WLANPI_IMAGE_FILE = '/etc/wlanpi-release'
 
-WCONSOLE_SWITCHER_FILE ='/usr/binwconsole_switcher'
+WCONSOLE_SWITCHER_FILE ='/usr/bin/wconsole_switcher'
 HOTSPOT_SWITCHER_FILE = '/usr/bin/hotspot_switcher'
 WIPERF_SWITCHER_FILE = '/usr/bin/wiperf_switcher'
 
