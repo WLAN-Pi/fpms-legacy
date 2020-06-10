@@ -117,7 +117,7 @@ valid_modes = ['classic', 'wconsole', 'hotspot', 'wiperf']
 # check mode file exists and read mode...create with classic mode if not
 if os.path.isfile(MODE_FILE):
     with open(MODE_FILE, 'r') as f:
-        current_mode = f.readline()
+        current_mode = f.readline().strip()
     
     # send msg to stdout & exit if mode invalid
     if not current_mode in valid_modes:
