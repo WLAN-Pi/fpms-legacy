@@ -47,9 +47,9 @@ MODE_FILE = '/etc/wlanpi-state'
 # Version file for WLAN Pi image
 WLANPI_IMAGE_FILE = '/etc/wlanpi-release'
 
-WCONSOLE_SWITCHER_FILE ='/etc/wconsole/wconsole_switcher'
-HOTSPOT_SWITCHER_FILE = '/etc/wlanpihotspot/hotspot_switcher'
-WIPERF_SWITCHER_FILE = '/home/wlanpi/wiperf/wiperf_switcher'
+WCONSOLE_SWITCHER_FILE ='/usr/bin/wconsole/wconsole_switcher'
+HOTSPOT_SWITCHER_FILE = '/usr/bin/wlanpihotspot/hotspot_switcher'
+WIPERF_SWITCHER_FILE = '/usr/bin/wiperf/wiperf_switcher'
 
 #### Paths below here are relative to script dir or /tmp fixed paths ###
 
