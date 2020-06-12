@@ -22,6 +22,7 @@ class App(object):
         '''
         Function to start/stop and get status of Kismet processes
         '''
+
         kismet_ctl_file = KISMET_CTL_FILE
 
         # check resource is available
@@ -30,7 +31,7 @@ class App(object):
                 kismet_ctl_file), back_button_req=1)
             g_vars['display_state'] = 'page'
             return
-
+        
         if action == "status":
             # check kismet status & return text
             try:
@@ -133,66 +134,100 @@ class App(object):
         self.bettercap_ctl(g_vars, action="start")
         return
 
-
+    def profiler_running(self):
+        try:
+            # this cmd fails if process not active
+            cmd = "systemctl is-active --quiet profiler.service"
+            cmd_output = subprocess.check_output(cmd, shell=True).decode()
+            return True
+        except subprocess.CalledProcessError as exc:
+            return False
+                
     def profiler_ctl(self, g_vars, action="status"):
         '''
         Function to start/stop and get status of Profiler processe
         '''
-        profiler_ctl_file = PROFILER_CTL_FILE
-
         # check resource is available
-        if not os.path.isfile(profiler_ctl_file):
+        try:
+            # this cmd fails if service no installed
+            cmd = "systemctl is-enabled profiler.service"
+            cmd_output = subprocess.check_output(cmd, shell=True).decode()
+        except:
+            # cmd failed, so profiler service not installed
             self.simple_table_obj. display_dialog_msg(g_vars, 'not available: {}'.format(
                 profiler_ctl_file), back_button_req=1)
             g_vars['display_state'] = 'page'
             return
+        
+        dialog_msg = "Unset"
+        item_list = []
 
+        # get profiler process status
+        # (no check for cached result as need to re-evaluate 
+        # on each 1 sec main loop cycle)
         if action == "status":
             # check profiler status & return text
-            try:
-                status_file_content = subprocess.check_output(
-                    "{} {}".format(profiler_ctl_file, action), shell=True).decode()
-                item_list = status_file_content.splitlines()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                item_list = ['Status failed!', str(output)]
+            if self.profiler_running():
+                item_list = ['Profiler active']
+            else:
+                item_list = ['Profiler not active']
 
             self.simple_table_obj.display_simple_table(g_vars, item_list, back_button_req=1,
                                 title='Profiler Status')
             g_vars['display_state'] = 'page'
             return True
 
-        elif action == "start":
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(profiler_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Start failed! {}'.format(output)
+        # if we're been round this loop before, 
+        # results treated as cached to prevent re-evaluating
+        # and re-painting 
+        if g_vars['result_cache'] == True:
+           return True
+
+        if action == "start":
+            # disable keys while we do this
+            g_vars['disable_keys'] = True
+
+            if self.profiler_running():
+                dialog_msg = 'Already running!'
+            else:
+                try:
+                    cmd = "systemctl start profiler.service"
+                    cmd_output = subprocess.check_output(cmd, shell=True).decode()
+                    dialog_msg = "Started."
+                except subprocess.CalledProcessError as exc:
+                    dialog_msg = 'Start failed!'
+                
+                # signal that result is cached (stops re-painting screen)
+                g_vars['result_cache'] = True
+
+            # re-enable keys
+            g_vars['disable_keys'] = False
 
         elif action == "start_no11r":
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(profiler_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Start failed! {}'.format(output)
+            pass
 
         elif action == "stop":
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(profiler_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Stop failed! {}'.format(output)
+            # disable keys while we do this
+            g_vars['disable_keys'] = True
+
+            if not self.profiler_running():
+                dialog_msg = 'Already stopped!'
+            else:
+                try:
+                    cmd = "systemctl stop profiler.service"
+                    cmd_output = subprocess.check_output(cmd, shell=True).decode()
+                    dialog_msg = "Stopped"
+                except subprocess.CalledProcessError as exc:
+                    dialog_msg = 'Stop failed!'
+                
+                # signal that result is cached (stops re-painting screen)
+                g_vars['result_cache'] = True
+
+            # re-enable keys
+            g_vars['disable_keys'] = False
 
         elif action == "purge":
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(profiler_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Report purge failed! {}'.format(output)
+            pass
 
         self.simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
         g_vars['display_state'] = 'page'
