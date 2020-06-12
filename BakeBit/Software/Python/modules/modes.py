@@ -56,6 +56,7 @@ class Mode(object):
 
         try:
             dialog_msg = subprocess.check_output("{} {}".format(resource_switcher_file, switch), shell=True).decode()  # reboots
+            time.sleep(1)
         except subprocess.CalledProcessError as exc:
             output = exc.output.decode()
             dialog_msg = mode_name
