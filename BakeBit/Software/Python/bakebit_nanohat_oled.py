@@ -7,7 +7,9 @@ a number of additional features to support the WLANPi initiative.
 
 History:
 
- 2.00 - Complete re-write to move to modular architcture - Nigel 03/03/2020
+ 2.0.0 - Complete re-write to move to modular architcture - Nigel 03/03/2020
+ 2.0.1 - First release baked in to iniital v2 alpha release
+ 2.0.2 - Added profiler2 support
 
 """
 
