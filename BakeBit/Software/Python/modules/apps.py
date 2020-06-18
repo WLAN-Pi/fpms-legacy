@@ -1,6 +1,7 @@
 import time
 import os.path
 import subprocess
+import pkgutil
 import bakebit_128_64_oled as oled
 
 from modules.pages.simpletable import SimpleTable
@@ -18,6 +19,13 @@ class App(object):
         # create simple table
         self.simple_table_obj = SimpleTable(g_vars)
 
+    """
+    The kismet and bettercap code below can be removed in a future release 
+    if these apps are not added back to the WLAN Pi. (NB 18th June 2020)
+
+    The end of the proposed section to be removed is just above the profiler
+    code
+    """
     def kismet_ctl(self, g_vars, action="status"):
         '''
         Function to start/stop and get status of Kismet processes
@@ -133,32 +141,74 @@ class App(object):
     def bettercap_start(self, g_vars):
         self.bettercap_ctl(g_vars, action="start")
         return
+    
+    """
+    *** End of kismet and bettercap code to be removed ***
+    """
+    
+    def profiler_ctl_file_update(self, fields_dict, filename):
 
+        # read in file to an array
+        with open(filename, 'r') as f:
+            lines = f.readlines()
+
+        # loop through each field in values to set in file
+        for key, value in fields_dict.items():
+
+            # step through all lines and look for a match
+            for count, line in enumerate(lines):
+                # replace match in file with key/value pair
+                if line.startswith(key):
+                    lines[count] = "{}: {}\n".format(key, value)
+        
+        # write modified file back out
+        with open(filename, 'w') as f:
+            f.writelines(lines)
+
+        
     def profiler_running(self):
         try:
             # this cmd fails if process not active
             cmd = "systemctl is-active --quiet profiler.service"
-            cmd_output = subprocess.check_output(cmd, shell=True).decode()
+            subprocess.check_output(cmd, shell=True)
             return True
         except subprocess.CalledProcessError as exc:
             return False
                 
     def profiler_ctl(self, g_vars, action="status"):
         '''
-        Function to start/stop and get status of Profiler processe
+        Function to start/stop and get status of Profiler processes
         '''
+        # if we're been round this loop before, 
+        # results treated as cached to prevent re-evaluating
+        # and re-painting 
+        if g_vars['result_cache'] == True:
+           # re-enable keys
+           g_vars['disable_keys'] = False
+           return True
+        
+        # disable keys while we react to the key press that got us here
+        g_vars['disable_keys'] = True
+
         # check resource is available
         try:
-            # this cmd fails if service no installed
+            # this cmd fails if service not installed
             cmd = "systemctl is-enabled profiler.service"
-            cmd_output = subprocess.check_output(cmd, shell=True).decode()
+            subprocess.run(cmd, shell=True)
         except:
             # cmd failed, so profiler service not installed
             self.simple_table_obj. display_dialog_msg(g_vars, 'not available: {}'.format(
                 profiler_ctl_file), back_button_req=1)
             g_vars['display_state'] = 'page'
+            g_vars['result_cache'] = True
             return
         
+        # get path to the config file
+        package = pkgutil.get_loader("profiler2")
+        entry_point = package.get_filename()
+        profiler_dir = os.path.split(entry_point)[0]
+        config_file = "{}/config.ini".format(profiler_dir)
+      
         dialog_msg = "Unset"
         item_list = []
 
@@ -166,6 +216,7 @@ class App(object):
         # (no check for cached result as need to re-evaluate 
         # on each 1 sec main loop cycle)
         if action == "status":
+            
             # check profiler status & return text
             if self.profiler_running():
                 item_list = ['Profiler active']
@@ -175,59 +226,72 @@ class App(object):
             self.simple_table_obj.display_simple_table(g_vars, item_list, back_button_req=1,
                                 title='Profiler Status')
             g_vars['display_state'] = 'page'
+            
+            g_vars['result_cache'] = True
             return True
 
-        # if we're been round this loop before, 
-        # results treated as cached to prevent re-evaluating
-        # and re-painting 
-        if g_vars['result_cache'] == True:
-           return True
+        if action.startswith("start"):
+            self.simple_table_obj. display_dialog_msg(g_vars, "Please wait...", back_button_req=0)
 
-        if action == "start":
-            # disable keys while we do this
-            g_vars['disable_keys'] = True
+            if action == "start":
+                # set the config file to use params
+                cfg_dict = { "ft_enabled": "True", "he_enabled": "True"}
+                self.profiler_ctl_file_update(cfg_dict, config_file)
+
+            elif action == "start_no11r":
+                # set the config file to use params
+                cfg_dict = { "ft_enabled": "False", "he_enabled": "True"}
+                self.profiler_ctl_file_update(cfg_dict, config_file)
+
+            elif action == "start_no11ax":
+                # set the config file to use params
+                cfg_dict = { "ft_enabled": "True", "he_enabled": "False"}
+                self.profiler_ctl_file_update(cfg_dict, config_file)
+
+            else:
+                print("Unknown profiler action: {}".format(action))
 
             if self.profiler_running():
                 dialog_msg = 'Already running!'
             else:
                 try:
-                    cmd = "systemctl start profiler.service"
-                    cmd_output = subprocess.check_output(cmd, shell=True).decode()
+                    cmd = "/bin/systemctl start profiler.service"
+                    subprocess.run(cmd, shell=True, timeout=2)
                     dialog_msg = "Started."
-                except subprocess.CalledProcessError as exc:
+                except subprocess.CalledProcessError as proc_exc:
                     dialog_msg = 'Start failed!'
-                
-                # signal that result is cached (stops re-painting screen)
-                g_vars['result_cache'] = True
-
-            # re-enable keys
-            g_vars['disable_keys'] = False
-
-        elif action == "start_no11r":
-            pass
-
+                except subprocess.TimeoutExpired as timeout_exc:
+                    dialog_msg = 'Proc timed-out!'
+                    
         elif action == "stop":
-            # disable keys while we do this
-            g_vars['disable_keys'] = True
+
+            self.simple_table_obj. display_dialog_msg(g_vars, "Please wait...", back_button_req=0)
 
             if not self.profiler_running():
                 dialog_msg = 'Already stopped!'
             else:
                 try:
-                    cmd = "systemctl stop profiler.service"
-                    cmd_output = subprocess.check_output(cmd, shell=True).decode()
+                    cmd = "/bin/systemctl stop profiler.service"
+                    subprocess.run(cmd, shell=True)
                     dialog_msg = "Stopped"
                 except subprocess.CalledProcessError as exc:
                     dialog_msg = 'Stop failed!'
                 
-                # signal that result is cached (stops re-painting screen)
-                g_vars['result_cache'] = True
-
-            # re-enable keys
-            g_vars['disable_keys'] = False
-
         elif action == "purge":
-            pass
+            # call profiler2 with the --clean option
+
+            self.simple_table_obj. display_dialog_msg(g_vars, "Please wait...", back_button_req=0)
+
+            try:
+                cmd = "/usr/bin/python3 -m profiler2 --clean"
+                subprocess.run(cmd, shell=True)
+                dialog_msg = "Reports purged."
+            except subprocess.CalledProcessError as exc:
+                dialog_msg = "Reports purge error: {}".format(exc)
+                print(dialog_msg)
+            
+        # signal that result is cached (stops re-painting screen)
+        g_vars['result_cache'] = True
 
         self.simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
         g_vars['display_state'] = 'page'
@@ -252,7 +316,10 @@ class App(object):
     def profiler_start_no11r(self, g_vars):
         self.profiler_ctl(g_vars, action="start_no11r")
         return
-
+    
+    def profiler_start_no11ax(self, g_vars):
+        self.profiler_ctl(g_vars, action="start_no11ax")
+        return
 
     def profiler_purge(self, g_vars):
         self.profiler_ctl(g_vars, action="purge")
