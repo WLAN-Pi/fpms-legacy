@@ -281,6 +281,10 @@ def profiler_start_no11r():
     app_obj = App(g_vars)
     app_obj.profiler_start_no11r(g_vars)
 
+def profiler_start_no11ax():
+    app_obj = App(g_vars)
+    app_obj.profiler_start_no11ax(g_vars)
+
 def profiler_purge():
     app_obj = App(g_vars)
     app_obj.profiler_purge(g_vars)
@@ -468,6 +472,7 @@ menu = [
             {"name": "Stop", "action":            profiler_stop},
             {"name": "Start", "action":           profiler_start},
             {"name": "Start (no 11r)", "action":  profiler_start_no11r},
+            {"name": "Start (no 11ax)", "action":  profiler_start_no11ax},
             {"name": "Purge Reports", "action":   profiler_purge},
         ]
         },
