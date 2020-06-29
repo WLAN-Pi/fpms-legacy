@@ -12,30 +12,24 @@ cleanup
 TMPDIR="/tmp/reachability"
 DEFAULTGATEWAY=$(ip route | grep "default" | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
 DGINTERFACE=$(ip route | grep "default" | cut -d ' ' -f5)
-DNSSERVERCOUNT=$(sudo cat /etc/resolv.conf | grep "nameserver" | cut -d ' ' -f2 | wc -l)
+DNSSERVERCOUNT=$(cat /etc/resolv.conf | grep "nameserver" | cut -d ' ' -f2 | wc -l)
 
 if [ "$DNSSERVERCOUNT" -eq 1 ]; then
-  DNSSERVER1=$(sudo cat /etc/resolv.conf | grep "nameserver" -m1 | cut -d ' ' -f2)
+  DNSSERVER1=$(cat /etc/resolv.conf | grep "nameserver" -m1 | cut -d ' ' -f2)
 fi
 
 if [ "$DNSSERVERCOUNT" -eq 2 ]; then
-  DNSSERVER1=$(sudo cat /etc/resolv.conf | grep "nameserver" -m1 | cut -d ' ' -f2)
-  DNSSERVER2=$(sudo cat /etc/resolv.conf | grep "nameserver" | head -2 | tail -1 | cut -d ' ' -f2)
+  DNSSERVER1=$(cat /etc/resolv.conf | grep "nameserver" -m1 | cut -d ' ' -f2)
+  DNSSERVER2=$(cat /etc/resolv.conf | grep "nameserver" | head -2 | tail -1 | cut -d ' ' -f2)
 fi
 
 if [ "$DNSSERVERCOUNT" -gt 2 ]; then
-  DNSSERVER1=$(sudo cat /etc/resolv.conf | grep "nameserver" -m1 | cut -d ' ' -f2)
-  DNSSERVER2=$(sudo cat /etc/resolv.conf | grep "nameserver" | head -2 | tail -1 | cut -d ' ' -f2)
-  DNSSERVER3=$(sudo cat /etc/resolv.conf | grep "nameserver" | head -3 | tail -1 | cut -d ' ' -f2)
+  DNSSERVER1=$(cat /etc/resolv.conf | grep "nameserver" -m1 | cut -d ' ' -f2)
+  DNSSERVER2=$(cat /etc/resolv.conf | grep "nameserver" | head -2 | tail -1 | cut -d ' ' -f2)
+  DNSSERVER3=$(cat /etc/resolv.conf | grep "nameserver" | head -3 | tail -1 | cut -d ' ' -f2)
 fi
 
 # --- Checks ---
-#Check if the script is running as root
-if [ $EUID -ne 0 ]; then
-  echo "This script must be run as root"
-  exit 1
-fi
-
 #Prevent multiple instances of the script to run at the same time
 for pid in $(pidof -x $0); do
   if [ $pid != $$ ]; then
@@ -68,7 +62,7 @@ if [ "$DNSSERVER3" ]; then
 { dig +short +time=2 +tries=1 @"$DNSSERVER3" NS google.com &>/dev/null; echo $?; } &> "$TMPDIR/dns3.txt" &
 fi
 
-{ timeout 2 sudo arping -c1 -w2 -I "$DGINTERFACE" "$DEFAULTGATEWAY" 2>/dev/null; }  &> "$TMPDIR/arpinggateway.txt" &
+{ timeout 2 arping -c1 -w2 -I "$DGINTERFACE" "$DEFAULTGATEWAY" 2>/dev/null; }  &> "$TMPDIR/arpinggateway.txt" &
 
 #Wait for all tests to finish
 wait
