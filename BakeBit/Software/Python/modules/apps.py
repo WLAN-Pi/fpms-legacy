@@ -5,12 +5,6 @@ import pkgutil
 import bakebit_128_64_oled as oled
 
 from modules.pages.simpletable import SimpleTable
-from modules.constants import (
-    KISMET_CTL_FILE,
-    BETTERCAP_CTL_FILE,
-    PROFILER_CTL_FILE,
-)
-
 
 class App(object):
 
@@ -19,133 +13,7 @@ class App(object):
         # create simple table
         self.simple_table_obj = SimpleTable(g_vars)
 
-    """
-    The kismet and bettercap code below can be removed in a future release 
-    if these apps are not added back to the WLAN Pi. (NB 18th June 2020)
-
-    The end of the proposed section to be removed is just above the profiler
-    code
-    """
-    def kismet_ctl(self, g_vars, action="status"):
-        '''
-        Function to start/stop and get status of Kismet processes
-        '''
-
-        kismet_ctl_file = KISMET_CTL_FILE
-
-        # check resource is available
-        if not os.path.isfile(kismet_ctl_file):
-            self.simple_table_obj. display_dialog_msg(g_vars, '{} not available'.format(
-                kismet_ctl_file), back_button_req=1)
-            g_vars['display_state'] = 'page'
-            return
-        
-        if action == "status":
-            # check kismet status & return text
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(kismet_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Status failed! {}'.format(output)
-
-        elif action == "start":
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(kismet_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Start failed! {}'.format(output)
-
-        elif action == "stop":
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(kismet_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Stop failed! {}'.format(output)
-
-        self.simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
-        g_vars['display_state'] = 'page'
-        return True
-
-
-    def kismet_status(self, g_vars):
-        self.kismet_ctl(g_vars, action="status")
-        return
-
-
-    def kismet_stop(self, g_vars):
-        self.kismet_ctl(g_vars, action="stop")
-        return
-
-
-    def kismet_start(self, g_vars):
-        self.kismet_ctl(g_vars, action="start")
-        return
-
-
-    def bettercap_ctl(self, g_vars, action="status"):
-        '''
-        Function to start/stop and get status of Kismet processes
-        '''
-        bettercap_ctl_file = BETTERCAP_CTL_FILE
-
-        # check resource is available
-        if not os.path.isfile(bettercap_ctl_file):
-            self.simple_table_obj. display_dialog_msg(g_vars, '{} not available'.format(
-                bettercap_ctl_file), back_button_req=1)
-            g_vars['display_state'] = 'page'
-            return
-
-        if action == "status":
-            # check bettercap status & return text
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(bettercap_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Status failed! {}'.format(output)
-
-        elif action == "start":
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(bettercap_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Start failed! {}'.format(output)
-
-        elif action == "stop":
-            try:
-                dialog_msg = subprocess.check_output(
-                    "{} {}".format(bettercap_ctl_file, action), shell=True).decode()
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                dialog_msg = 'Stop failed! {}'.format(output)
-
-        self.simple_table_obj. display_dialog_msg(g_vars, dialog_msg, back_button_req=1)
-        g_vars['display_state'] = 'page'
-        return True
-
-
-    def bettercap_status(self, g_vars):
-        self.bettercap_ctl(g_vars, action="status")
-        return
-
-
-    def bettercap_stop(self, g_vars):
-        self.bettercap_ctl(g_vars, action="stop")
-        return
-
-
-    def bettercap_start(self, g_vars):
-        self.bettercap_ctl(g_vars, action="start")
-        return
-    
-    """
-    *** End of kismet and bettercap code to be removed ***
-    """
-    
+   
     def profiler_ctl_file_update(self, fields_dict, filename):
 
         # read in file to an array

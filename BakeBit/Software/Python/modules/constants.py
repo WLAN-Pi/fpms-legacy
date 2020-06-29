@@ -53,11 +53,6 @@ WIPERF_SWITCHER_FILE = '/usr/bin/wiperf_switcher'
 
 #### Paths below here are relative to script dir or /tmp fixed paths ###
 
-# helper scripts to launch misc processes
-KISMET_CTL_FILE = SCRIPT_PATH + '/scripts/kismet_ctl'
-BETTERCAP_CTL_FILE = SCRIPT_PATH + '/scripts/bettercap_ctl'
-PROFILER_CTL_FILE = SCRIPT_PATH + '/scripts/profiler_ctl'
-
 # cdp and lldp networkinfo data file names
 LLDPNEIGH_FILE = '/tmp/lldpneigh.txt'
 CDPNEIGH_FILE = '/tmp/cdpneigh.txt'

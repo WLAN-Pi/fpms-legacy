@@ -243,30 +243,6 @@ def wiperf_switcher():
 ###########################
 # Apps area
 ###########################
-#def kismet_status():
-#    app_obj = App(g_vars)
-#    app_obj.kismet_status(g_vars)
-
-#def kismet_stop():
-#    app_obj = App(g_vars)
-#    app_obj.kismet_stop(g_vars)
-
-#def kismet_start():
-#    app_obj = App(g_vars)
-#    app_obj.kismet_start(g_vars)
-
-#def bettercap_status():
-#    app_obj = App(g_vars)
-#    app_obj.bettercap_status(g_vars)
-
-#def bettercap_stop():
-#    app_obj = App(g_vars)
-#    app_obj.bettercap_stop(g_vars)
-
-#def bettercap_start():
-#    app_obj = App(g_vars)
-#    app_obj.bettercap_start(g_vars)
-
 def profiler_status():
     app_obj = App(g_vars)
     app_obj.profiler_status(g_vars)
@@ -457,18 +433,6 @@ menu = [
     ]
     },
     {"name": "Apps", "action": [
-        #{"name": "Kismet",   "action": [
-        #    {"name": "Status", "action": kismet_status},
-        #    {"name": "Stop", "action":   kismet_stop},
-        #    {"name": "Start", "action":  kismet_start},
-        #]
-        #},
-        #{"name": "Bettercap",   "action": [
-        #    {"name": "Status", "action": bettercap_status},
-        #    {"name": "Stop", "action":   bettercap_stop},
-        #    {"name": "Start", "action":  bettercap_start},
-        #]
-        #},
         {"name": "Profiler",   "action": [
             {"name": "Status", "action":          profiler_status},
             {"name": "Stop", "action":            profiler_stop},
