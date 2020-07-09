@@ -15,9 +15,9 @@ for pid in $(pidof -x $0); do
     fi
 done
 
-DIRECTORY=$1
 CAPTUREFILE="/tmp/cdpneightcpdump.cap"
 OUTPUTFILE="/tmp/cdpneigh.txt"
+DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 #Clean up the output files
 sudo "$DIRECTORY"/cdpcleanup.sh
@@ -28,7 +28,7 @@ logger "networkinfo script: looking for a CDP neighbour"
 TIMETOSTOP=0
 while [ "$TIMETOSTOP" == 0 ]; do
     timeout 61 sudo tcpdump -v -s 1500 -c 1 'ether[20:2] == 0x2000' -Q in > "$CAPTUREFILE"
-    TIMETOSTOP=$(cat "$CAPTUREFILE" | grep "CDP")
+    TIMETOSTOP=$(grep "CDP" "$CAPTUREFILE")
 done
 
 #If we didn't capture any LLDP packets then return
@@ -40,17 +40,17 @@ else
 fi
 
 #Be careful this first statement uses tee without -a and overwrites the content of the text file
-DEVICEID=$(cat "$CAPTUREFILE" | grep "Device-ID" | cut -d "'" -f2)
+DEVICEID=$(grep "Device-ID" "$CAPTUREFILE" | cut -d "'" -f2)
 echo -e "Name: $DEVICEID" 2>&1 | tee "$OUTPUTFILE"
 
-PORT=$(cat "$CAPTUREFILE" | grep "Port-ID" | cut -d "'" -f2)
+PORT=$(grep "Port-ID" "$CAPTUREFILE" | cut -d "'" -f2)
 if [ "$PORT" ]; then
     echo -e "Port: $PORT" 2>&1 | tee -a "$OUTPUTFILE"
 fi
 
 #UBNT devices send <reverse-ip-address>.in-addr.arpa in their CDP messages
 ISREVERSEADDRESS=$(grep "in-addr.arpa" "$CAPTUREFILE")
-ADDRESS=$(sudo cat "$CAPTUREFILE" | grep "Address " | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
+ADDRESS=$(grep "Address " "$CAPTUREFILE" | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
 if [ "$ISREVERSEADDRESS" ]; then
     ADDRESS=$(echo "$ADDRESS" | awk -F. '{OFS=FS;print $4,$3,$2,$1}')
 fi
@@ -58,12 +58,18 @@ if [ "$ADDRESS" ]; then
     echo -e "IP: $ADDRESS" 2>&1 | tee -a "$OUTPUTFILE"
 fi
 
-NATIVEVLAN=$(cat "$CAPTUREFILE" | grep "Native VLAN ID" | cut -d ':' -f3)
+NATIVEVLAN=$(grep "Native VLAN ID" "$CAPTUREFILE" | cut -d ':' -f3)
 if [ "$NATIVEVLAN" ]; then
     echo -e "Native VLAN:$NATIVEVLAN" 2>&1 | tee -a "$OUTPUTFILE"
 fi
 
-PLATFORM=$(cat "$CAPTUREFILE" | grep "Platform" | cut -d "'" -f2)
+PLATFORM=$(grep "Platform" "$CAPTUREFILE" | cut -d "'" -f2)
 echo -e "Model: $PLATFORM" 2>&1 | tee -a "$OUTPUTFILE"
 
+SWVER=$(grep -A 1 "Version String" "$CAPTUREFILE" | tail -n 1 | sed 's/^[[:space:]]*//')
+if [ "$SWVER" ]; then
+    echo -e "SW: $SWVER" 2>&1 | tee -a "$OUTPUTFILE"
+fi
+
 exit 0
+

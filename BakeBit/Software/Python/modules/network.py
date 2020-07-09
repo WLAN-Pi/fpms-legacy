@@ -311,6 +311,12 @@ class Network(object):
             choppedoutput.append(n[0:20])
             if len(n) > 20:
                 choppedoutput.append(n[20:40])
+            if len(n) > 40:
+                choppedoutput.append(n[40:60])
+            if len(n) > 60:
+                choppedoutput.append(n[60:80])
+            if len(n) > 80:
+                choppedoutput.append(n[80:100])
 
         # final check no-one pressed a button before we render page
         if g_vars['display_state'] == 'menu':
@@ -353,6 +359,12 @@ class Network(object):
             choppedoutput.append(n[0:20])
             if len(n) > 20:
                 choppedoutput.append(n[20:40])
+            if len(n) > 40:
+                choppedoutput.append(n[40:60])
+            if len(n) > 60:
+                choppedoutput.append(n[60:80])
+            if len(n) > 80:
+                choppedoutput.append(n[80:100])
 
         # final check no-one pressed a button before we render page
         if g_vars['display_state'] == 'menu':
