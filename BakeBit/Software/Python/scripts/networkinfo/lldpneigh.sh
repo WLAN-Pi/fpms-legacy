@@ -15,9 +15,9 @@ for pid in $(pidof -x $0); do
     fi
 done
 
-DIRECTORY=$1
 CAPTUREFILE="/tmp/lldpneightcpdump.cap"
 OUTPUTFILE="/tmp/lldpneigh.txt"
+DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 #Clean up the output files
 sudo "$DIRECTORY"/lldpcleanup.sh
@@ -28,7 +28,7 @@ logger "networkinfo script: looking for an LLDP neighbour"
 TIMETOSTOP=0
 while [ "$TIMETOSTOP" == 0 ]; do
     timeout 61 sudo tcpdump -vv -s 1500 -c 1 'ether[12:2]=0x88cc' -Q in > "$CAPTUREFILE"
-    TIMETOSTOP=$(cat "$CAPTUREFILE" | grep "LLDP")
+    TIMETOSTOP=$(grep "LLDP" "$CAPTUREFILE")
 done
 
 #If we didn't capture any LLDP packets then return
