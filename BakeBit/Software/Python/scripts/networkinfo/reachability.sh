@@ -10,8 +10,8 @@ cleanup
 
 # --- Variables ---
 TMPDIR="/tmp/reachability"
-DEFAULTGATEWAY=$(ip route | grep "default" | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
-DGINTERFACE=$(ip route | grep "default" | cut -d ' ' -f5)
+DEFAULTGATEWAY=$(ip route | grep "default" | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n1)
+DGINTERFACE=$(ip route | grep "default" | head -n1 | cut -d ' ' -f5)
 DNSSERVERCOUNT=$(cat /etc/resolv.conf | grep "nameserver" | cut -d ' ' -f2 | wc -l)
 
 if [ "$DNSSERVERCOUNT" -eq 1 ]; then
