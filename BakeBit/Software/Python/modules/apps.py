@@ -151,7 +151,7 @@ class App(object):
             self.simple_table_obj. display_dialog_msg(g_vars, "Please wait...", back_button_req=0)
 
             try:
-                cmd = "/usr/bin/python3 -m profiler2 --clean"
+                cmd = "profiler --clean"
                 subprocess.run(cmd, shell=True)
                 dialog_msg = "Reports purged."
             except subprocess.CalledProcessError as exc:
