@@ -13,8 +13,8 @@ else
     ETH0LEASES="/var/lib/dhcp/dhclient.eth0.leases"
 fi
 
-ACTIVEIP=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | cut -d '/' -f1 | cut -d ' ' -f6)
-SUBNET=$(ip a | grep "eth0" | grep "inet" | cut -d ' ' -f6 | tail -c 4)
+ACTIVEIP=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
+SUBNET=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | head -n1 | cut -d ' ' -f6 | tail -c 4)
 
 LEASEDIPISUSED=$(grep "$ACTIVEIP" "$ETH0LEASES")
 
