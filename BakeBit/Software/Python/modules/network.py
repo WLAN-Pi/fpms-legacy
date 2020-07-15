@@ -236,7 +236,7 @@ class Network(object):
         if g_vars['display_state'] == 'menu':
             return
 
-        self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1, title='--Eth0 IP Config--')
+        self.paged_table_obj.display_list_as_paged_table(g_vars, choppedoutput, back_button_req=1, title='--Eth0 IP Cfg--')
 
         return
 
@@ -408,5 +408,6 @@ class Network(object):
         if g_vars['display_state'] == 'menu':
             return
 
-        self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1, title='--Public IP Address--')
-        time.sleep(10)
+        self.paged_table_obj.display_list_as_paged_table(g_vars, choppedoutput, back_button_req=1, title='  --Public IP--')
+
+        #time.sleep(0.5)
