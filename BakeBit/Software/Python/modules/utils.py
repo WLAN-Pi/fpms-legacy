@@ -94,7 +94,7 @@ class Utils(object):
         if g_vars['display_state'] == 'menu':
             return
 
-        self.simple_table_obj.display_simple_table(g_vars, choppedoutput, back_button_req=1, title='--Reachability--')
+        self.paged_table_obj.display_list_as_paged_table(g_vars, choppedoutput, back_button_req=1, title='-Reachability-')
     
     def show_wpa_passphrase(self, g_vars):
         '''
