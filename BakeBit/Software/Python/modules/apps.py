@@ -72,6 +72,7 @@ class App(object):
             return
         
         # get path to the config file
+        sys.path.append('/opt/wlanpi/pipx/venvs/profiler2/lib/python3.7/site-packages')
         package = pkgutil.get_loader("profiler2")
         entry_point = package.get_filename()
         profiler_dir = os.path.split(entry_point)[0]
@@ -151,7 +152,7 @@ class App(object):
             self.simple_table_obj. display_dialog_msg(g_vars, "Please wait...", back_button_req=0)
 
             try:
-                cmd = "profiler --clean"
+                cmd = "/opt/wlanpi/pipx/bin/profiler --clean --yes"
                 subprocess.run(cmd, shell=True)
                 dialog_msg = "Reports purged."
             except subprocess.CalledProcessError as exc:
