@@ -3,6 +3,7 @@ import os.path
 import subprocess
 import pkgutil
 import bakebit_128_64_oled as oled
+import sys
 
 from modules.pages.simpletable import SimpleTable
 
