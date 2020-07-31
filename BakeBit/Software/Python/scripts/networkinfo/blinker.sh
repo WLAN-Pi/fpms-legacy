@@ -4,9 +4,11 @@
 COUNT=5
 #Default interface name if not specified explicitly otherwise
 INTERFACE="eth0"
+#Use colors in output by default
+COLOR=1
 
 usage(){
-  echo "Usage: $0 [[-c NUMBER_OF_CYCLES ] | [-t TIMEOUT_IN_SECONDS] | [-i INTERFACE_NAME] [-h]]"
+  echo "Usage: $0 [[-c NUMBER_OF_CYCLES ] | [-t TIMEOUT_IN_SECONDS] | [-i INTERFACE_NAME] [-h] | -no-color]"
 }
 
 blink_n_times(){
@@ -14,10 +16,18 @@ blink_n_times(){
   COUNT=$1
   for (( c=1; c<="$COUNT"; c++ ))
   do
-    echo -e "\e[91mDown"
+    if  [ COLOR == 1 ]; then
+      echo -e "\e[91mDown"
+    else
+      echo "Down"
+    fi
     sudo ifconfig "$INTERFACE" down
     sleep 3
-    echo -e "\e[92mUp"
+    if  [ COLOR == 1 ]; then
+      echo -e "\e[92mUp"
+    else
+      echo "Up"
+    fi
     sudo ifconfig "$INTERFACE" up
     sleep 7
   done
@@ -26,21 +36,28 @@ blink_n_times(){
 blink_n_seconds(){
   echo "Interface: $INTERFACE"
   timeout $1 bash <<EOF
-  echo "Timeout is $1"
   while true
   do
-    echo -e "\e[91mDown"
+    if  [ COLOR == 1 ]; then
+      echo -e "\e[91mDown"
+    else
+      echo "Down"
+    fi
     sudo ifconfig "$INTERFACE" down
     sleep 3
-    echo -e "\e[92mUp"
+    if  [ COLOR == 1 ]; then
+      echo -e "\e[92mUp"
+    else
+      echo "Up"
+    fi
     sudo ifconfig "$INTERFACE" up
     sleep 7
   done
 EOF
 }
 
-#Was at least 1 complete argument (2 strings separate by space) provided
-if [ "$#" -eq 1 ]; then
+#If an incomplete argument (complete argument is 2 strings separated by space) was provided display usage, with the exception of --no-color
+if [ "$#" -eq 1 ] && [[ "$*" != *'--no-color'* ]]; then
   usage
   exit
 fi
@@ -50,6 +67,12 @@ if [[ "$*" == *'-i '* ]]; then
     INTERFACE=$(echo $@ | grep -o '\-i .*' | cut -d " " -f2)
 fi
 
+#Was --no-color argument used
+if [[ "$*" == *'--no-color'* ]]; then
+    COLOR=0
+fi
+
+#Parse arguments
 while [ "$1" != "" ]; do
     case $1 in
         -c | --count )          shift
@@ -67,6 +90,8 @@ while [ "$1" != "" ]; do
     esac
     shift
 done
+
+#Default behaviour when script is executed without arguments
 blink_n_times "$COUNT"
 
 exit 0

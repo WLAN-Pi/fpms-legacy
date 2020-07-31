@@ -5,6 +5,7 @@ from modules.pages.simpletable import *
 from modules.pages.pagedtable import *
 from modules.constants import (
     REACHABILITY_FILE,
+    BLINKER_FILE,
     UFW_FILE,
 )
 
@@ -60,6 +61,41 @@ class Utils(object):
         g_vars['disable_keys'] = False
 
         self.simple_table_obj.display_simple_table(g_vars, g_vars['speedtest_result_text'], back_button_req=1, title='--Speedtest--')
+
+    def show_blinker(self, g_vars):
+        '''
+        Run switch port blinker
+        ( *** Note that blinker_status set back to False in menu_right() *** )
+        '''
+        # Has speedtest been run already?
+        if g_vars['blinker_status'] == False:
+
+            # ignore any more key presses as this could cause us issues
+            g_vars['disable_keys'] = True
+
+            self.simple_table_obj.display_dialog_msg(g_vars, 'Running Blinker. Watch switch port LEDs.', back_button_req=0)
+
+            blinker_info = []
+            blinker_cmd = BLINKER_FILE
+
+            try:
+                blinker_output = subprocess.check_output(blinker_cmd, shell=True).decode()
+                blinker_info = blinker_output.split('\n')
+            except subprocess.CalledProcessError as exc:
+                output = exc.output.decode()
+                error = ["Err: Blinker error", output]
+                self.simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
+                return
+
+            if len(blinker_info) == 0:
+                blinker_info.append("No output sorry")
+
+            g_vars['blinker_status'] = True
+
+        # re-enable front panel keys
+        g_vars['disable_keys'] = False
+
+        self.simple_table_obj.display_dialog_msg(g_vars, 'Blinker done', back_button_req=1)
     
     def show_reachability(self, g_vars):
         '''

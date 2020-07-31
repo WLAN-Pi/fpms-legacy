@@ -213,6 +213,10 @@ def show_mist_test():
     utils_obj = CloudUtils(g_vars)
     utils_obj.test_mist_cloud(g_vars)
 
+def show_blinker():
+    utils_obj = Utils(g_vars)
+    utils_obj.show_blinker(g_vars)
+
 def show_wpa_passphrase():
     utils_obj = Utils(g_vars)
     utils_obj.show_wpa_passphrase(g_vars)
@@ -407,6 +411,11 @@ menu = [
         {"name": "Mist Cloud", "action": [
             {"name": "Back", "action": go_up},
             {"name": "Start Test", "action": show_mist_test},
+        ]
+        },
+        {"name": "Blinker", "action": [
+            {"name": "Back", "action": go_up},
+            {"name": "Start Blinker", "action": show_blinker},
         ]
         },
         {"name": "WPA Passphrase", "action": show_wpa_passphrase},
