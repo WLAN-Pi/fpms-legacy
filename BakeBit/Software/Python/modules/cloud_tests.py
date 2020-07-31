@@ -64,7 +64,7 @@ class CloudUtils(object):
             if not test_fail:
                 # Can we resolve address ep-terminator.mistsys.net?
                 try:
-                    socket.gethostbyname("ep-terminator.mistsys.net1")
+                    socket.gethostbyname("ep-terminator.mistsys.net")
                     item_list[2] = "DNS:             OK"
                 except:
                     test_fail = True
