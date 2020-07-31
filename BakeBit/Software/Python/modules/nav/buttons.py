@@ -41,6 +41,7 @@ class Button(object):
 
         # make sure we know speedtest is done
         g_vars['speedtest_status'] = False
+        g_vars['blinker_status'] = False
 
         # If we are in a table, scroll up (unless at top of list)
         if g_vars['display_state'] == 'page':
