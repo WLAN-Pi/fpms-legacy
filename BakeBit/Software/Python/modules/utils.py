@@ -60,6 +60,50 @@ class Utils(object):
         g_vars['disable_keys'] = False
 
         self.simple_table_obj.display_simple_table(g_vars, g_vars['speedtest_result_text'], back_button_req=1, title='--Speedtest--')
+
+    def show_blinker(self, g_vars):
+        '''
+        Run switch port blinker
+        ( *** Note that blinker_status set back to False in menu_right() *** )
+        '''
+        # Has speedtest been run already?
+        if g_vars['blinker_status'] == False:
+
+            # ignore any more key presses as this could cause us issues
+            g_vars['disable_keys'] = True
+
+            self.simple_table_obj.display_dialog_msg(g_vars, 'Running Blinker. Please wait.', back_button_req=0)
+
+            blinker_info = []
+            blinker_cmd = "./usr/share/fpms/BakeBit/Software/Python/scripts/networkinfo/blinker.sh"
+
+            try:
+                blinker_output = subprocess.check_output(speedtest_cmd, shell=True).decode()
+                blinker_info = speedtest_output.split('\n')
+            except subprocess.CalledProcessError as exc:
+                output = exc.output.decode()
+                error = ["Err: Blinker error", output]
+                self.simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
+                return
+
+            if len(blinker_info) == 0:
+                blinker_info.append("No output sorry")
+
+            # chop down output to fit up to 2 lines on display
+            g_vars['blinker_result_text'] = []
+
+            for n in blinker_info:
+                g_vars['blinker_result_text'].append(n[0:20])
+                if len(n) > 20:
+                    g_vars['blinker_result_text'].append(n[20:40])
+
+            g_vars['blinker_status'] = True
+
+        # re-enable front panel keys
+        g_vars['disable_keys'] = False
+
+        self.simple_table_obj.display_simple_table(g_vars, g_vars['blinker_result_text'], back_button_req=1, title='--Blinker--')
+
     
     def show_reachability(self, g_vars):
         '''
