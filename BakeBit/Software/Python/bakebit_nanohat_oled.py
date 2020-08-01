@@ -415,7 +415,7 @@ menu = [
         },
         {"name": "Port Blinker", "action": [
             {"name": "Back", "action": go_up},
-            {"name": "Blink eth0", "action": show_blinker},
+            {"name": "Blink eth0 5x", "action": show_blinker},
         ]
         },
         {"name": "WPA Passphrase", "action": show_wpa_passphrase},

@@ -31,6 +31,7 @@ blink_n_times(){
     sudo ifconfig "$INTERFACE" up
     sleep 7
   done
+  sudo dhclient eth0
 }
 
 blink_n_seconds(){
@@ -54,6 +55,7 @@ blink_n_seconds(){
     sleep 7
   done
 EOF
+sudo dhclient eth0
 }
 
 #If an incomplete argument (complete argument is 2 strings separated by space) was provided display usage, with the exception of --no-color
@@ -74,21 +76,21 @@ fi
 
 #Parse arguments
 while [ "$1" != "" ]; do
-    case $1 in
-        -c | --count )          shift
-                                blink_n_times $1
-                                exit
+  case $1 in
+      -c | --count )          shift
+                              blink_n_times $1
+                              exit
+                              ;;
+      -t | --timeout )        shift
+                              blink_n_seconds $1
+                              exit
+                              ;;
+      -h | --help )           usage
+                              exit
                                 ;;
-        -t | --timeout )        shift
-                                blink_n_seconds $1
-                                exit
-                                ;;
-        -h | --help )           usage
-                                exit
-                                ;;
-        * )
-    esac
-    shift
+      * )
+  esac
+  shift
 done
 
 #Default behaviour when script is executed without arguments
