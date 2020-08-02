@@ -64,7 +64,7 @@ class Utils(object):
 
     def show_blinker(self, g_vars):
         '''
-        Run switch port blinker
+        Run Port Blinker on eth0 and identify switch port on the far end of the Ethernet cable
         ( *** Note that blinker_status set back to False in menu_right() *** )
         '''
         # Has speedtest been run already?
@@ -73,7 +73,7 @@ class Utils(object):
             # ignore any more key presses as this could cause us issues
             g_vars['disable_keys'] = True
 
-            self.simple_table_obj.display_dialog_msg(g_vars, 'Running Blinker. Watch switch port LEDs.', back_button_req=0)
+            self.simple_table_obj.display_dialog_msg(g_vars, 'Blinking eth0. Watch port LEDs on the switch.', back_button_req=0)
 
             blinker_info = []
             blinker_cmd = BLINKER_FILE
@@ -95,7 +95,7 @@ class Utils(object):
         # re-enable front panel keys
         g_vars['disable_keys'] = False
 
-        self.simple_table_obj.display_dialog_msg(g_vars, 'Blinker done', back_button_req=1)
+        self.simple_table_obj.display_dialog_msg(g_vars, 'Port Blinker on eth0 has finished.', back_button_req=1)
     
     def show_reachability(self, g_vars):
         '''
