@@ -499,6 +499,10 @@ if g_vars['current_mode'] == "wiperf":
     switcher_dispatcher = wiperf_switcher
     g_vars['home_page_name'] = "Wiperf"
 
+if g_vars['current_mode'] == "server":
+    switcher_dispatcher = server_switcher
+    g_vars['home_page_name'] = "Server"
+
 if g_vars['current_mode'] != "classic":
     menu[2] = {"name": "Mode", "action": [
         {"name": "Classic Mode",   "action": [
