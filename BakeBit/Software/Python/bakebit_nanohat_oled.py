@@ -114,7 +114,7 @@ g_vars['reboot_image'] = Image.open('images/reboot.png').convert('1')
 # check our current operating mode
 #####################################
 
-valid_modes = ['classic', 'wconsole', 'hotspot', 'wiperf']
+valid_modes = ['classic', 'wconsole', 'hotspot', 'wiperf', 'server']
 
 # check mode file exists and read mode...create with classic mode if not
 if os.path.isfile(MODE_FILE):
