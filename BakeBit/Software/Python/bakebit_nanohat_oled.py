@@ -243,7 +243,11 @@ def hotspot_switcher():
 def wiperf_switcher():
     mode_obj = Mode(g_vars)
     mode_obj.wiperf_switcher(g_vars)
-    
+
+def server_switcher():
+    mode_obj = Mode(g_vars)
+    mode_obj.server_switcher(g_vars)
+
 ###########################
 # Apps area
 ###########################
@@ -437,6 +441,11 @@ menu = [
         {"name": "Wiperf",   "action": [
             {"name": "Cancel", "action": go_up},
             {"name": "Confirm", "action": wiperf_switcher},
+        ]
+        },
+        {"name": "Server",   "action": [
+            {"name": "Cancel", "action": go_up},
+            {"name": "Confirm", "action": server_switcher},
         ]
         },
     ]

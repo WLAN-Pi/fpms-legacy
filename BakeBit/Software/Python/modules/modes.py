@@ -8,6 +8,7 @@ from modules.constants import (
     WCONSOLE_SWITCHER_FILE,
     HOTSPOT_SWITCHER_FILE,
     WIPERF_SWITCHER_FILE,
+    SERVER_SWITCHER_FILE,
 )
 
 class Mode(object):
@@ -107,6 +108,18 @@ class Mode(object):
         resource_title = "Wiperf"
         mode_name = "wiperf"
         resource_switcher_file = wiperf_switcher_file
+
+        self.switcher(g_vars, resource_title, resource_switcher_file, mode_name)
+        return True
+
+
+    def server_switcher(self, g_vars):
+
+        server_switcher_file = SERVER_SWITCHER_FILE
+
+        resource_title = "Server"
+        mode_name = "server"
+        resource_switcher_file = server_switcher_file
 
         self.switcher(g_vars, resource_title, resource_switcher_file, mode_name)
         return True
