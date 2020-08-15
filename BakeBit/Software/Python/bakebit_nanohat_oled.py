@@ -142,14 +142,14 @@ if os.path.isfile(BUTTONS_FILE):
         key_map = f.readline()
         g_vars['key_map'] = key_map
 
-##################################################################
+#######################################################################
 # Server mode non-persistence
-# If the Pi is in Server mode switch back to Classic on next boot
-##################################################################
+# If the Pi is in Server schedule mode switch to Classic for next boot
+#######################################################################
 
 if g_vars['current_mode'] == "server":
-    disable_server_command = "sudo sed -i 's|^exit 0|/etc/wlanpiserver/etc/switch-server-mode-to-classic \&\nexit 0|' /etc/rc.local"
-    subprocess.Popen([disable_server_command])
+    schedule_server_to_classic = "/etc/wlanpiserver/scripts/schedule-switch-to-classic"
+    subprocess.Popen([schedule_server_to_classic])
 
 ##################################
 # Static info we want to get once
