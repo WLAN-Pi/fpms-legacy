@@ -82,7 +82,7 @@ class HomePage(object):
         elif g_vars['current_mode'] == "hotspot":
             # get wlan0 IP
             if_name = "wlan0"
-            mode_name = "Hotspot " + self.wifi_client_count() + " client(s)"
+            mode_name = "Hotspot " + self.wifi_client_count() + " clients"
 
         elif g_vars['current_mode'] == "wiperf":
             # get wlan0 IP
