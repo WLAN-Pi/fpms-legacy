@@ -50,6 +50,7 @@ WLANPI_IMAGE_FILE = '/etc/wlanpi-release'
 WCONSOLE_SWITCHER_FILE ='/usr/bin/wconsole_switcher'
 HOTSPOT_SWITCHER_FILE = '/usr/bin/hotspot_switcher'
 WIPERF_SWITCHER_FILE = '/usr/bin/wiperf_switcher'
+SERVER_SWITCHER_FILE = '/usr/bin/server_switcher'
 
 #### Paths below here are relative to script dir or /tmp fixed paths ###
 

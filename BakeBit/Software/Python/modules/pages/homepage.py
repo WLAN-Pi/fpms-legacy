@@ -89,6 +89,11 @@ class HomePage(object):
             if_name = "wlan0"
             mode_name = "Wiperf" + self.check_wiperf_status()
 
+        elif g_vars['current_mode'] == "server":
+            # get eth0 IP
+            if_name = "eth0"
+            mode_name = "DHCP Server Enabled!"
+
         else:
             # get eth0 IP
             if_name = "eth0"

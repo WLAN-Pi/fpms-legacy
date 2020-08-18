@@ -114,7 +114,7 @@ g_vars['reboot_image'] = Image.open('images/reboot.png').convert('1')
 # check our current operating mode
 #####################################
 
-valid_modes = ['classic', 'wconsole', 'hotspot', 'wiperf']
+valid_modes = ['classic', 'wconsole', 'hotspot', 'wiperf', 'server']
 
 # check mode file exists and read mode...create with classic mode if not
 if os.path.isfile(MODE_FILE):
@@ -141,6 +141,15 @@ if os.path.isfile(BUTTONS_FILE):
     with open(BUTTONS_FILE, 'r') as f:
         key_map = f.readline()
         g_vars['key_map'] = key_map
+
+#######################################################################
+# Server mode non-persistence
+# If the Pi is in Server schedule mode switch to Classic for next boot
+#######################################################################
+
+if g_vars['current_mode'] == "server":
+    schedule_server_to_classic = "/etc/wlanpiserver/scripts/schedule-switch-to-classic"
+    subprocess.Popen([schedule_server_to_classic])
 
 ##################################
 # Static info we want to get once
@@ -243,7 +252,11 @@ def hotspot_switcher():
 def wiperf_switcher():
     mode_obj = Mode(g_vars)
     mode_obj.wiperf_switcher(g_vars)
-    
+
+def server_switcher():
+    mode_obj = Mode(g_vars)
+    mode_obj.server_switcher(g_vars)
+
 ###########################
 # Apps area
 ###########################
@@ -439,6 +452,11 @@ menu = [
             {"name": "Confirm", "action": wiperf_switcher},
         ]
         },
+        {"name": "Server",   "action": [
+            {"name": "Cancel", "action": go_up},
+            {"name": "Confirm", "action": server_switcher},
+        ]
+        },
     ]
     },
     {"name": "Apps", "action": [
@@ -489,6 +507,10 @@ if g_vars['current_mode'] == "hotspot":
 if g_vars['current_mode'] == "wiperf":
     switcher_dispatcher = wiperf_switcher
     g_vars['home_page_name'] = "Wiperf"
+
+if g_vars['current_mode'] == "server":
+    switcher_dispatcher = server_switcher
+    g_vars['home_page_name'] = "Server"
 
 if g_vars['current_mode'] != "classic":
     menu[2] = {"name": "Mode", "action": [
