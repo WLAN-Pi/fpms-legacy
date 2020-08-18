@@ -1,7 +1,6 @@
 import time
 import os.path
 import subprocess
-import pkgutil
 import bakebit_128_64_oled as oled
 import sys
 
@@ -72,12 +71,7 @@ class App(object):
             g_vars['result_cache'] = True
             return
         
-        # get path to the config file
-        sys.path.append('/opt/wlanpi/pipx/venvs/profiler2/lib/python3.7/site-packages')
-        package = pkgutil.get_loader("profiler2")
-        entry_point = package.get_filename()
-        profiler_dir = os.path.split(entry_point)[0]
-        config_file = "{}/config.ini".format(profiler_dir)
+        config_file = "/etc/profiler2/config.ini"
       
         dialog_msg = "Unset"
         item_list = []
