@@ -409,5 +409,4 @@ class Network(object):
             return
 
         self.paged_table_obj.display_list_as_paged_table(g_vars, choppedoutput, back_button_req=1, title='  --Public IP--')
-
-        #time.sleep(0.5)
+        time.sleep(0.5)
