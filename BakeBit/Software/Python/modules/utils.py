@@ -33,7 +33,7 @@ class Utils(object):
             self.simple_table_obj.display_dialog_msg(g_vars, 'Running Speedtest. Please wait.', back_button_req=0)
 
             speedtest_info = []
-            speedtest_cmd = "speedtest | egrep -w \"Testing from|Download|Upload\" | sed -r 's/Testing from.*?\(/My IP: /g; s/\)\.\.\.//g; s/Download/D/g; s/Upload/U/g; s/bit\/s/bps/g'"
+            speedtest_cmd = "speedtest | egrep -w \"Testing from|Download|Upload\" | sed -r 's/Testing from.*?\(/Me: /g; s/\)\.\.\.//g; s/Download/D/g; s/Upload/U/g; s/bit\/s/bps/g'"
 
             try:
                 speedtest_output = subprocess.check_output(speedtest_cmd, shell=True).decode()
