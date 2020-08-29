@@ -167,7 +167,7 @@ if os.path.isfile(WLANPI_IMAGE_FILE):
         (name, value) = line.split("=")
         if name=="VERSION":
             version = value.strip()
-            g_vars['wlanpi_ver'] = "WLAN Pi v" + version[1:-1]
+            g_vars['wlanpi_ver'] = "WLAN Pi " + version[1:-1]
             break
 
 # get hostname
