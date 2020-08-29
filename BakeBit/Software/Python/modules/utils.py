@@ -42,6 +42,8 @@ class Utils(object):
                 output = exc.output.decode()
                 error = ["Err: Speedtest error", output]
                 self.simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
+                # re-enable front panel keys
+                g_vars['disable_keys'] = False
                 return
 
             if len(speedtest_info) == 0:
