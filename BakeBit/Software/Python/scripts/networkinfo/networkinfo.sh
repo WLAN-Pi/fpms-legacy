@@ -17,6 +17,7 @@ do
     #Execute neighbour detection scripts
     sudo "$DIRECTORY"/lldpneigh.sh &
     sudo "$DIRECTORY"/cdpneigh.sh  &
+    "$DIRECTORY"/telegrambot.sh &
   ;;
   *".ethernet eth0: Link is Down"*)
     logger "networkinfo script: eth0 went down"
