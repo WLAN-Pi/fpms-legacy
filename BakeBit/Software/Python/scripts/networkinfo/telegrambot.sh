@@ -8,8 +8,8 @@ HOSTNAME=$(hostname)
 UPTIME=$(uptime -p | cut -c4-)
 MODE=$(cat /etc/wlanpi-state)
 
-APIKEY="1309738878:AAEohYK84-mr7cvxFgIWtCuOWB556J1tb2s"
-CHATID="981901222"
+APIKEY=""
+CHATID=""
 
 #Get public IP data in JSON format 
 DATAINJSON=$(timeout 3 curl -s 'ifconfig.co/json')
