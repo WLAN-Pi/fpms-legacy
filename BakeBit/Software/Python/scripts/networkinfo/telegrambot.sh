@@ -8,10 +8,10 @@ HOSTNAME=$(hostname)
 UPTIME=$(uptime -p | cut -c4-)
 MODE=$(cat /etc/wlanpi-state)
 
-APIKEY=""
-CHATID=""
+TELEGRAM_API_KEY=""
+TELEGRAM_CHAT_ID=""
 
-#Get public IP data in JSON format 
+#Get public IP data in JSON format
 DATAINJSON=$(timeout 3 curl -s 'ifconfig.co/json')
 
 #Parse
@@ -23,7 +23,7 @@ PUBLICIPASN=$(echo "$DATAINJSON" | grep -Po '"asn":"\K[^"]*')
 
 echo "before while"
 
-while true; do 
+while true; do
   ETH0IP=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
   sleep 0.5
   echo "in while after sleep"
@@ -32,29 +32,33 @@ while true; do
     logger "Telegram bot: sending IP details"
     echo "inside if"
     TEXT=''
-    TEXT+="<u>Your $HOSTNAME is now online</u> %0A"
-    TEXT+="Eth0 IP Address: <code>$ETH0IP</code> %0A"
+    TEXT+="%f0%9f%9f%a2 <b>$HOSTNAME is now online</b> %0A"
+    TEXT+="Eth0 IP address: <code>$ETH0IP</code> %0A"
     TEXT+="Speed: $ETH0SPEED %0A"
     TEXT+="Duplex: $ETH0DUPLEX %0A"
     TEXT+="Mode: $MODE %0A"
     TEXT+="Uptime: $UPTIME %0A"
-    TEXT+="Web Interface: http://$ETH0IP %0A"
-    #TEXT+="Web Console: https://$ETH0IP:9090 %0A"
-    TEXT+="SSH Connection: <code>ssh://wlanpi@$ETH0IP</code> %0A"
-    #TEXT+="Copy File to TFTP Server: copy flash:filename tftp://$ETH0IP %0A"
-    TEXT+="Public IP Address: <code>$PUBLICIP</code>, <code>$PUBLICIPHOSTNAME</code> %0A"
+    TEXT+="Web interface: http://$ETH0IP %0A"
+    #TEXT+="Web console: https://$ETH0IP:9090 %0A"
+    TEXT+="SSH to the Pi: <code>ssh://wlanpi@$ETH0IP</code> %0A"
+    #TEXT+="Copy file to TFTP server: copy flash:filename tftp://$ETH0IP %0A"
+    TEXT+="Public IP: <code>$PUBLICIP</code>, <code>$PUBLICIPHOSTNAME</code> %0A"
 
     #Try using this instead for complex text
     #curl --data chat_id=12345678 --data-urlencode "text=Some complex text $25 78%"  "https://api.telegram.org/bot0000000:KEYKEYKEYKEYKEYKEY/sendMessage"
+
     echo "before sending"
-    timeout 5 curl -s -X POST "https://api.telegram.org/bot$APIKEY/sendMessage?chat_id=$CHATID&parse_mode=html&text=$TEXT" > /dev/null
+    #First attempt to send message
+    timeout 5 curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_API_KEY/sendMessage?chat_id=$TELEGRAM_CHAT_ID&parse_mode=html&text=$TEXT" > /dev/null
     if [ "$?" != 0  ]; then
       MESSAGE_SENT="no"
       echo "Message failed! Resending now."
-      timeout 5 curl -s -X POST "https://api.telegram.org/bot$APIKEY/sendMessage?chat_id=$CHATID&parse_mode=html&text=$TEXT" > /dev/null
+      #Second attempt to send message
+      timeout 5 curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_API_KEY/sendMessage?chat_id=$TELEGRAM_CHAT_ID&parse_mode=html&text=$TEXT" > /dev/null
+
       if [ "$?" != 0  ]; then
         MESSAGE_SENT="no"
-        echo "Message failed again! Giving up!"
+        echo "Message failed again! Giving up."
       else "Message successfully sent second time"
       fi
     else
