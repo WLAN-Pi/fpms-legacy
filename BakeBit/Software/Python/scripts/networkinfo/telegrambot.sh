@@ -43,16 +43,15 @@ while true; do
     TEXT+="SSH Connection: <code>ssh://wlanpi@$ETH0IP</code> %0A"
     #TEXT+="Copy File to TFTP Server: copy flash:filename tftp://$ETH0IP %0A"
     TEXT+="Public IP Address: <code>$PUBLICIP</code>, <code>$PUBLICIPHOSTNAME</code> %0A"
-TEXT="123"
 
     #Try using this instead for complex text
     #curl --data chat_id=12345678 --data-urlencode "text=Some complex text $25 78%"  "https://api.telegram.org/bot0000000:KEYKEYKEYKEYKEYKEY/sendMessage"
     echo "before sending"
-    timeout 5 curl -s -X POST "https://api.telegram.org/bot$APIKEY/sendMessage?chat_id=$CHATID&parse_mode=html&text=$TEXT"
+    timeout 5 curl -s -X POST "https://api.telegram.org/bot$APIKEY/sendMessage?chat_id=$CHATID&parse_mode=html&text=$TEXT" > /dev/null
     if [ "$?" != 0  ]; then
       MESSAGE_SENT="no"
       echo "Message failed! Resending now."
-      timeout 5 curl -s -X POST "https://api.telegram.org/bot$APIKEY/sendMessage?chat_id=$CHATID&parse_mode=html&text=$TEXT"
+      timeout 5 curl -s -X POST "https://api.telegram.org/bot$APIKEY/sendMessage?chat_id=$CHATID&parse_mode=html&text=$TEXT" > /dev/null
       if [ "$?" != 0  ]; then
         MESSAGE_SENT="no"
         echo "Message failed again! Giving up!"
