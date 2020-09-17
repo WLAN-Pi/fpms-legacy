@@ -39,7 +39,7 @@ for pid in $(pidof -x $0); do
 done
 
 if [ ! "$DEFAULTGATEWAY" ]; then
-  echo "No Default Gateway"
+  echo "No default gateway"
   exit 0
 fi
 
