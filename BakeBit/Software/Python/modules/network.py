@@ -13,6 +13,7 @@ from modules.constants import (
     IPCONFIG_FILE,
     PUBLICIP_CMD,
     IFCONFIG_FILE,
+    IWCONFIG_FILE,
     IW_FILE,
 )
 
@@ -97,6 +98,61 @@ class Network(object):
 
         self.paged_table_obj.display_list_as_paged_table(g_vars, interfaces, back_button_req=1, title="--Interfaces--")
 
+    def channel_lookup(self, freq):
+
+        channels = {
+            '2.412': 1,
+            '2.417': 2,
+            '2.422': 3,
+            '2.427': 4,
+            '2.432': 5,
+            '2.437': 6,
+            '2.442': 7,
+            '2.447': 8,
+            '2.452': 9,
+            '2.457': 10,
+            '2.462': 11,
+            '2.467': 12,
+            '2.472': 13,
+            '2.484': 14,
+            '5.18':  36,
+            '5.2':  40,
+            '5.22':  44,
+            '5.24':  48,
+            '5.26':  52,
+            '5.28':  56,
+            '5.3':   60,
+            '5.32':  64,
+            '5.5':   100,
+            '5.52':  104,
+            '5.54':  108,
+            '5.56':  112,
+            '5.58':  116,
+            '5.6':   120,
+            '5.62':  124,
+            '5.64':  128,
+            '5.66':  132,
+            '5.68':  136,
+            '5.7':   140,
+            '5.72':  144,
+            '5.745': 149,
+            '5.765': 153,
+            '5.785': 157,
+            '5.805': 161,
+            '5.825': 165,
+        }
+
+        return channels.get(freq, 'unknown')
+    
+    def field_extractor(self, field_name, pattern, cmd_output_text):
+
+        re_result = re.search(pattern, cmd_output_text)
+
+        if not re_result is None:
+            field_value = re_result.group(1)
+            return field_value
+        else:
+            return None
 
     def show_wlan_interfaces(self, g_vars):
         '''
@@ -104,8 +160,7 @@ class Network(object):
         '''
 
         ifconfig_file = IFCONFIG_FILE
-        iw_file = IW_FILE
-
+        iwconfig_file = IWCONFIG_FILE
 
         try:
             ifconfig_info = subprocess.check_output('{} -s'.format(ifconfig_file), shell=True).decode()
@@ -125,60 +180,66 @@ class Network(object):
             for interface_name in interface_re:
 
                 interface_info = []
+                ssid = False
+                freq = False
+                channel = False
+                mode = False
 
-                # use iw to find further info for each wlan interface
+                # use iwconfig to find further info for each wlan interface
                 try:
-                    iw_info = subprocess.check_output( "{} {} info".format(iw_file, interface_name), shell=True).decode()
-                except:
-                    iw_info = "Err: iw cmd failed"
+                    cmd = "{} {}".format(iwconfig_file, interface_name)
+                    iwconfig_info = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).decode()
+                except subprocess.CalledProcessError:
+                    iwconfig_info = "Err: iwconfig cmd failed"
 
-                # split the output in to an array
-                iw_list = iw_info.split('\n')
+                # Extract SSID
+                pattern = r'ESSID\:\"(.*?)\"'
+                field_name = "ssid"
+                extraction = self.field_extractor(
+                    field_name, pattern, iwconfig_info)
+                if extraction:
+                    ssid = extraction
 
-                interface_details = {}
+                # Extract Frequency
+                pattern = r'Frequency[\:|\=](\d+\.\d+) '
+                field_name = "freq"
+                extraction = self.field_extractor(
+                    field_name, pattern, iwconfig_info)
+                if extraction:
+                    freq = extraction
 
-                for iw_item in iw_list:
-
-                    iw_item = iw_item.strip()
-
-                    fields = iw_item.split()
-
-                    # skip empty lines
-                    if not fields:
-                        continue
-
-                    interface_details[fields[0]] = fields[1:]
+                # lookup channel number from freq
+                if freq:
+                    channel = self.channel_lookup(str(freq))
+                
+                # Extract Mode
+                pattern = r'Mode\:(.*?) '
+                field_name = "mode"
+                extraction = self.field_extractor(
+                    field_name, pattern, iwconfig_info)
+                if extraction:
+                    mode = extraction
 
                 # construct our page data - start with name
                 interface_info.append("Interface: " + interface_name)
 
-                # SSID (if applicable)
-                if 'ssid' in interface_details.keys():
-                    interface_info.append(
-                        "SSID: " + str(interface_details['ssid'][0]))
+                # SSID
+                if 'ssid':
+                    interface_info.append("SSID: {}".format(ssid))
                 else:
                     interface_info.append("SSID: N/A")
 
                 # Mode
-                if 'type' in interface_details.keys():
-                    interface_info.append(
-                        "Mode: " + str(interface_details['type'][0]))
+                if 'mode':
+                    interface_info.append( "Mode: {}".format(mode))
                 else:
                     interface_info.append("Mode: N/A")
 
                 # Channel
-                if 'channel' in interface_details.keys():
-                    interface_info.append("Ch: {} ({}Mhz)".format(
-                        str(interface_details['channel'][0]), str(interface_details['channel'][4])))
+                if 'channel':
+                    interface_info.append("Ch: {}".format(channel))
                 else:
                     interface_info.append("Ch: unknown")
-
-                # MAC
-                if 'addr' in interface_details.keys():
-                    interface_info.append(
-                        "Addr: " + str(interface_details['addr']))
-                else:
-                    interface_info.append("Addr: unknown")
 
                 interfaces.append(interface_info)
 
