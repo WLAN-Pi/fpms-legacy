@@ -59,7 +59,6 @@ while true; do
 
   if [ ! -z "$ETH0IP" ]; then
     sleep 1
-    logger "Telegram bot: sending IP details"
     TEXT=''
     TEXT+="%f0%9f%9f%a2 <b>$HOSTNAME is now online</b> %0A"
     TEXT+="Eth0 IP address: <code>$ETH0IP</code> %0A"
@@ -87,11 +86,13 @@ while true; do
       if [ "$?" != 0  ]; then
         MESSAGE_SENT="no"
         echo "Message failed again! Giving up."
+        exit 4
       else "Message sent second time"
       fi
     else
       echo ""
-      echo "Message sent"
+      echo "Message successfully sent"
+      logger "networkinfo Telegram bot: Message successfully sent"
     fi
     break
   fi
