@@ -16,7 +16,7 @@
 source /etc/environment
 
 #Got the API key?
-if [ -z $TELEGRAM_API_KEY ]; then
+if [ -z "$TELEGRAM_API_KEY" ]; then
   echo "Error: No Telegram API key found"
   echo "Replace xxx with your Telegram API key and execute this command once:"
   echo ""
@@ -27,14 +27,14 @@ if [ -z $TELEGRAM_API_KEY ]; then
 fi
 
 #Get Chat ID - for this to work you have to send a Telegram message to the bot first from your laptop or phone
-if [ -z $TELEGRAM_CHAT_ID ]; then
-  TELEGRAM_CHAT_ID=$(curl -s -X GET https://api.telegram.org/bot$TELEGRAM_API_KEY/getUpdates | jq -r ".result[0].message.chat.id")
-  if [ -z $TELEGRAM_CHAT_ID ]; then
+if [ -z "$TELEGRAM_CHAT_ID" ] || [ "$TELEGRAM_CHAT_ID" == "null" ]; then
+  TELEGRAM_CHAT_ID=$(curl -s -X GET https://api.telegram.org/bot"$TELEGRAM_API_KEY"/getUpdates | jq -r ".result[0].message.chat.id")
+  if [ -z "$TELEGRAM_CHAT_ID" ] || [ "$TELEGRAM_CHAT_ID" == "null" ]; then
     echo "Error: Telegram Chat ID not found. Send a Telegram message with any text to the bot. This is mandatory!"
     logger "networkinfo telegrambot: Error - No Chat ID found!"
     exit 2
   else
-    sudo bash -c "echo TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" >> /etc/environment"
+      sudo bash -c "echo TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" >> /etc/environment"
   fi
 fi
 
