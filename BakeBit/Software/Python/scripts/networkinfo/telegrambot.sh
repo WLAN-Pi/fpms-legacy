@@ -22,7 +22,7 @@ if [ -z $TELEGRAM_API_KEY ]; then
   echo ""
   echo "sudo bash -c 'echo TELEGRAM_API_KEY=\"xxx\" >> /etc/environment'"
   echo ""
-  logger "networkinfo Telegram bot: Error - No API key found!"
+  logger "networkinfo telegrambot: Error - No API key found!"
   exit 1 
 fi
 
@@ -31,14 +31,14 @@ if [ -z $TELEGRAM_CHAT_ID ]; then
   TELEGRAM_CHAT_ID=$(curl -s -X GET https://api.telegram.org/bot$TELEGRAM_API_KEY/getUpdates | jq -r ".result[0].message.chat.id")
   if [ -z $TELEGRAM_CHAT_ID ]; then
     echo "Error: Telegram Chat ID not found. Send a Telegram message with any text to the bot. This is mandatory!"
-    logger "networkinfo Telegram bot: Error - No Chat ID found!"
+    logger "networkinfo telegrambot: Error - No Chat ID found!"
     exit 2
   else
     sudo bash -c "echo TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" >> /etc/environment"
   fi
 fi
 
-logger "networkinfo Telegram bot: Collecting data"
+logger "networkinfo telegrambot: Collecting data"
 
 #Collect all data
 ETH0SPEED=$(ethtool eth0 2>/dev/null | grep -q "Link detected: yes" && ethtool eth0 2>/dev/null | grep "Speed" | sed 's/....$//' | cut -d ' ' -f2  || echo "Disconnected")
@@ -90,7 +90,7 @@ while true; do
       fi
     else
       echo "Message successfully sent"
-      logger "networkinfo Telegram bot: Message successfully sent"
+      logger "networkinfo telegrambot: Message successfully sent"
     fi
     break
   fi
