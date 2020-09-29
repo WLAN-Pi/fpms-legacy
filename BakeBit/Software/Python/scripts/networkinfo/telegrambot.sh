@@ -6,35 +6,39 @@
 #--------------------------------------------
 # READ THIS FIRST
 #
-# Enter your Telegram API key by executing the below command from from shell. Remove "#" and replace all "x" characters with your API key before executing.
+# Enter your Telegram API key by executing the below command from from shell. Remove "#" and replace xxx with your API key before executing.
 #
-# echo 'export TELEGRAM_API_KEY="xxxxxxxxxx:xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxx"' >> ~/.bashrc && source ~/.bashrc
+# sudo bash -c 'echo TELEGRAM_API_KEY="xxx" >> /etc/environment'
 #
 #--------------------------------------------
 
-#Connectivity check
-if !  curl -s -X GET https://api.telegram.org > /dev/null ; then
-  echo "Error: Cannot connect to the Telegram API. Check your internet connection."
-  logger "networkinfo Telegram bot: Error - Check your internet connection!"
-  exit 1
-fi
+#Load environmental variables
+source /etc/environment
 
 #Got the API key?
 if [ -z $TELEGRAM_API_KEY ]; then
-  echo "Error: No Telegram API key found. Use the below command to enter the key."
-  echo 'echo export TELEGRAM_API_KEY="xxxxxxxxxx:xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxx" >> ~/.bashrc && source ~/.bashrc'
+  echo "Error: No Telegram API key found"
+  echo "Replace xxx with your Telegram API key and execute this command once:"
+  echo ""
+  echo "sudo bash -c 'echo TELEGRAM_API_KEY=\"xxx\" >> /etc/environment'"
+  echo ""
   logger "networkinfo Telegram bot: Error - No API key found!"
-  exit 2 
+  exit 1 
 fi
 
 #Get Chat ID - for this to work you have to send a Telegram message to the bot first from your laptop or phone
-TELEGRAM_CHAT_ID=$(curl -s -X GET https://api.telegram.org/bot$TELEGRAM_API_KEY/getUpdates | jq -r ".result[0].message.chat.id")
-
 if [ -z $TELEGRAM_CHAT_ID ]; then
-  echo "Error: Telegram Chat ID not found. Send a Telegram message with any text to the bot. This is mandatory!"
-  logger "networkinfo Telegram bot: Error - No Chat ID found!"
-  exit 3 
+  TELEGRAM_CHAT_ID=$(curl -s -X GET https://api.telegram.org/bot$TELEGRAM_API_KEY/getUpdates | jq -r ".result[0].message.chat.id")
+  if [ -z $TELEGRAM_CHAT_ID ]; then
+    echo "Error: Telegram Chat ID not found. Send a Telegram message with any text to the bot. This is mandatory!"
+    logger "networkinfo Telegram bot: Error - No Chat ID found!"
+    exit 2
+  else
+    sudo bash -c "echo TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" >> /etc/environment"
+  fi
 fi
+
+logger "networkinfo Telegram bot: Collecting data"
 
 #Collect all data
 ETH0SPEED=$(ethtool eth0 2>/dev/null | grep -q "Link detected: yes" && ethtool eth0 2>/dev/null | grep "Speed" | sed 's/....$//' | cut -d ' ' -f2  || echo "Disconnected")
@@ -43,10 +47,8 @@ HOSTNAME=$(hostname)
 UPTIME=$(uptime -p | cut -c4-)
 MODE=$(cat /etc/wlanpi-state)
 
-#Get public IP data in JSON format
+#Get public IP data
 DATAINJSON=$(timeout 3 curl -s 'ifconfig.co/json')
-
-#Parse
 PUBLICIP=$(echo "$DATAINJSON" | grep -Po '"ip":"\K[^"]*')
 PUBLICIPCOUNTRY=$(echo "$DATAINJSON" | grep -Po '"country":"\K[^"]*')
 PUBLICIPASNORG=$(echo "$DATAINJSON" | grep -Po '"asn_org":"\K[^"]*')
@@ -55,10 +57,8 @@ PUBLICIPASN=$(echo "$DATAINJSON" | grep -Po '"asn":"\K[^"]*')
 
 while true; do
   ETH0IP=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
-  sleep 0.5
 
   if [ ! -z "$ETH0IP" ]; then
-    sleep 1
     TEXT=''
     TEXT+="%f0%9f%9f%a2 <b>$HOSTNAME is now online</b> %0A"
     TEXT+="Eth0 IP address: <code>$ETH0IP</code> %0A"
@@ -68,7 +68,7 @@ while true; do
     TEXT+="Uptime: $UPTIME %0A"
     TEXT+="Web interface: http://$ETH0IP %0A"
     #TEXT+="Web console: https://$ETH0IP:9090 %0A"
-    TEXT+="SSH to the Pi: <code>ssh://wlanpi@$ETH0IP</code> %0A"
+    TEXT+="SSH: <code>ssh://wlanpi@$ETH0IP</code> %0A"
     #TEXT+="Copy file to TFTP server: copy flash:filename tftp://$ETH0IP %0A"
     TEXT+="Public IP: <code>$PUBLICIP</code>, <code>$PUBLICIPHOSTNAME</code> %0A"
 
@@ -76,26 +76,25 @@ while true; do
     #curl --data chat_id=12345678 --data-urlencode "text=Some complex text $25 78%"  "https://api.telegram.org/bot0000000:KEYKEYKEYKEYKEYKEY/sendMessage"
 
     #First attempt to send message
-    timeout 5 curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_API_KEY/sendMessage?chat_id=$TELEGRAM_CHAT_ID&parse_mode=html&text=$TEXT" # > /dev/null
-    if [ "$?" != 0  ]; then
-      MESSAGE_SENT="no"
+    timeout 5 curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_API_KEY/sendMessage?chat_id=$TELEGRAM_CHAT_ID&parse_mode=html&text=$TEXT" > /dev/null
+    if [ "$?" != 0 ]; then
       echo "Message failed! Resending now."
       #Second attempt to send message
       timeout 5 curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_API_KEY/sendMessage?chat_id=$TELEGRAM_CHAT_ID&parse_mode=html&text=$TEXT" > /dev/null
 
-      if [ "$?" != 0  ]; then
-        MESSAGE_SENT="no"
-        echo "Message failed again! Giving up."
-        exit 4
-      else "Message sent second time"
+      if [ "$?" != 0 ]; then
+        echo "Sending failed again! Giving up."
+        exit 3
+      else
+        echo "Message successfully sent at second attempt"
       fi
     else
-      echo ""
       echo "Message successfully sent"
       logger "networkinfo Telegram bot: Message successfully sent"
     fi
     break
   fi
   sleep 1
+  echo "Waiting for internet connectivity..."
 done
 

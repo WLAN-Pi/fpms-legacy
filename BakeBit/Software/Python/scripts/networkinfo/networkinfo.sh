@@ -6,6 +6,7 @@ DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 #Start neighbour detection immediately after the WLAN Pi boots up
 sudo "$DIRECTORY"/lldpneigh.sh &
 sudo "$DIRECTORY"/cdpneigh.sh  &
+timeout 10 "$DIRECTORY"/telegrambot.sh &
 
 #Monitor up/down status changes of eth0 and execute neighbour detection or cleanup
 tail -fn0 /var/log/messages |
@@ -17,7 +18,7 @@ do
     #Execute neighbour detection scripts
     sudo "$DIRECTORY"/lldpneigh.sh &
     sudo "$DIRECTORY"/cdpneigh.sh  &
-    "$DIRECTORY"/telegrambot.sh &
+    timeout 10 "$DIRECTORY"/telegrambot.sh &
   ;;
   *".ethernet eth0: Link is Down"*)
     logger "networkinfo script: eth0 went down"
