@@ -81,7 +81,7 @@ class Utils(object):
             g_vars['disable_keys'] = False
 
             self.simple_table_obj.display_dialog_msg(g_vars, 'Blinking eth0. Watch port LEDs on the switch.', back_button_req=1)
-            time.sleep(30)
+            time.sleep(5)
         else:
             self.simple_table_obj.display_dialog_msg(g_vars, 'Port Blinker is already running.', back_button_req=1)
             g_vars['blinker_status'] = True

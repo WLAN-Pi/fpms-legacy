@@ -15,6 +15,14 @@
 #Load environmental variables
 source /etc/environment
 
+#Do not continue if Port Blinker is running. We don't want to spam you with Telegram messages every time eth0 goes up. 
+PORTBLINKERRUNNING=$(ps aux | grep "portblinker.sh" | grep -v "defunct" | grep -v "grep")
+if [ "$PORTBLINKERRUNNING" ] ; then
+  echo "Error: Port Blinker is running on eth0 and will generate many Telegram messages. Stopping Telegram bot."
+  logger "networkinfo telegrambot: Error - Stop Port Blinker first to avoid receiving many Telegram messages"
+  exit 1
+fi
+
 #Got the API key?
 if [ -z "$TELEGRAM_API_KEY" ]; then
   echo "Error: No Telegram API key found"
@@ -23,7 +31,7 @@ if [ -z "$TELEGRAM_API_KEY" ]; then
   echo "sudo bash -c 'echo TELEGRAM_API_KEY=\"xxx\" >> /etc/environment'"
   echo ""
   logger "networkinfo telegrambot: Error - No API key found!"
-  exit 1 
+  exit 2 
 fi
 
 #Get Chat ID - for this to work you have to send a Telegram message to the bot first from your laptop or phone
@@ -32,7 +40,7 @@ if [ -z "$TELEGRAM_CHAT_ID" ] || [ "$TELEGRAM_CHAT_ID" == "null" ]; then
   if [ -z "$TELEGRAM_CHAT_ID" ] || [ "$TELEGRAM_CHAT_ID" == "null" ]; then
     echo "Error: Telegram Chat ID not found. Send a Telegram message with any text to the bot. This is mandatory!"
     logger "networkinfo telegrambot: Error - No Chat ID found!"
-    exit 2
+    exit 3
   else
       sudo bash -c "echo TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" >> /etc/environment"
   fi
@@ -46,6 +54,9 @@ ETH0DUPLEX=$(ethtool eth0 2>/dev/null | grep -q "Link detected: yes" && ethtool 
 HOSTNAME=$(hostname)
 UPTIME=$(uptime -p | cut -c4-)
 MODE=$(cat /etc/wlanpi-state)
+ETH0IP=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
+UPLINK=$(ip route show | grep "default" | cut -d " " -f5)
+UPLINKIP=$(ip a | grep "$UPLINK" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
 
 #Get public IP data
 DATAINJSON=$(timeout 3 curl -s 'ifconfig.co/json')
@@ -54,9 +65,6 @@ PUBLICIPCOUNTRY=$(echo "$DATAINJSON" | grep -Po '"country":"\K[^"]*')
 PUBLICIPASNORG=$(echo "$DATAINJSON" | grep -Po '"asn_org":"\K[^"]*')
 PUBLICIPHOSTNAME=$(echo "$DATAINJSON" | grep -Po '"hostname":"\K[^"]*')
 PUBLICIPASN=$(echo "$DATAINJSON" | grep -Po '"asn":"\K[^"]*')
-ETH0IP=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
-UPLINK=$(ip route show | grep "default" | cut -d " " -f5)
-UPLINKIP=$(ip a | grep "$UPLINK" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
 
 if [ -z "$ETH0IP" ]; then
   CURRENTIP="$UPLINKIP"
@@ -107,7 +115,7 @@ if [ "$?" != 0 ]; then
 
   if [ "$?" != 0 ]; then
     echo "Error: Second attempt to send meesage failed! Giving up."
-    exit 3
+    exit 4
   else
     echo "Message successfully sent at second attempt"
   fi
