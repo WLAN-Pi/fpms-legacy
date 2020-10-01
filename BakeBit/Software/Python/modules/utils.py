@@ -1,5 +1,7 @@
 import subprocess
 import os.path
+import os
+import time
 
 from modules.pages.simpletable import * 
 from modules.pages.pagedtable import *
@@ -67,36 +69,28 @@ class Utils(object):
         Run Port Blinker on eth0 and identify switch port on the far end of the Ethernet cable
         ( *** Note that blinker_status set back to False in menu_right() *** )
         '''
-        # Has speedtest been run already?
+        # Has port blinker been run already?
         if g_vars['blinker_status'] == False:
 
             # ignore any more key presses as this could cause us issues
             g_vars['disable_keys'] = True
-
-            self.simple_table_obj.display_dialog_msg(g_vars, 'Blinking eth0. Watch port LEDs on the switch.', back_button_req=0)
-
-            blinker_info = []
-            blinker_cmd = BLINKER_FILE
-
-            try:
-                blinker_output = subprocess.check_output(blinker_cmd, shell=True).decode()
-                blinker_info = blinker_output.split('\n')
-            except subprocess.CalledProcessError as exc:
-                output = exc.output.decode()
-                error = ["Err: Blinker error", output]
-                self.simple_table_obj.display_simple_table(g_vars, error, back_button_req=1)
-                return
-
-            if len(blinker_info) == 0:
-                blinker_info.append("No output sorry")
-
+            g_vars['blinker_process'] = subprocess.Popen("/usr/share/fpms/BakeBit/Software/Python/scripts/networkinfo/portblinker.sh")
             g_vars['blinker_status'] = True
 
-        # re-enable front panel keys
-        g_vars['disable_keys'] = False
+            # re-enable front panel keys
+            g_vars['disable_keys'] = False
 
-        self.simple_table_obj.display_dialog_msg(g_vars, 'Port Blinker on eth0 has finished.', back_button_req=1)
-    
+            self.simple_table_obj.display_dialog_msg(g_vars, 'Blinking eth0. Watch port LEDs on the switch.', back_button_req=1)
+            time.sleep(30)
+        else:
+            self.simple_table_obj.display_dialog_msg(g_vars, 'Port Blinker is already running.', back_button_req=1)
+            g_vars['blinker_status'] = True
+
+    def stop_blinker(self, g_vars):
+        g_vars['blinker_process'].kill()
+        g_vars['blinker_status'] = False
+        self.simple_table_obj.display_dialog_msg(g_vars, 'Port Blinker stopped.', back_button_req=1)
+
     def show_reachability(self, g_vars):
         '''
         Check if default gateway, internet and DNS are reachable and working
