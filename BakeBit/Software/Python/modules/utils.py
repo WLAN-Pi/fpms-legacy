@@ -74,16 +74,14 @@ class Utils(object):
 
             # ignore any more key presses as this could cause us issues
             g_vars['disable_keys'] = True
-            g_vars['blinker_process'] = subprocess.Popen("/usr/share/fpms/BakeBit/Software/Python/scripts/networkinfo/portblinker.sh")
+            g_vars['blinker_process'] = subprocess.Popen(BLINKER_FILE)
             g_vars['blinker_status'] = True
 
             # re-enable front panel keys
             g_vars['disable_keys'] = False
 
-            self.simple_table_obj.display_dialog_msg(g_vars, 'Blinking eth0. Watch port LEDs on the switch.', back_button_req=1)
-            time.sleep(5)
         else:
-            self.simple_table_obj.display_dialog_msg(g_vars, 'Port Blinker is already running.', back_button_req=1)
+            self.simple_table_obj.display_dialog_msg(g_vars, 'Blinking eth0. Watch port LEDs on the switch.', back_button_req=1)
             g_vars['blinker_status'] = True
 
     def stop_blinker(self, g_vars):
