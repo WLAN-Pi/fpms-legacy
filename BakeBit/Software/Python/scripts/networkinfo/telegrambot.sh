@@ -1,16 +1,13 @@
 #!/bin/bash
 
 #Author: Jiri Brejcha, jirka@jiribrejcha.net
-#Sends current IP address and other useful details to you as a Telegram message, requires internet connectivity on eth0 interface
+#Sends current WLAN Pi IP address and other useful details to you in a Telegram message. Requires internet connection.
 
-#--------------------------------------------
+#----------------------------------------------------------
 # READ THIS FIRST
-#
-# Enter your Telegram API key by executing the below command from from shell. Remove "#" and replace xxx with your API key before executing.
-#
+# Save your Telegram API key to the WLAN Pi by executing the below command. Remove "#" and replace "xxx" with your API key before executing.
 # sudo bash -c 'echo TELEGRAM_API_KEY="xxx" >> /etc/environment'
-#
-#--------------------------------------------
+#----------------------------------------------------------
 
 #Load environmental variables
 source /etc/environment
@@ -55,7 +52,7 @@ HOSTNAME=$(hostname)
 UPTIME=$(uptime -p | cut -c4-)
 MODE=$(cat /etc/wlanpi-state)
 ETH0IP=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
-UPLINK=$(ip route show | grep "default" | cut -d " " -f5)
+UPLINK=$(ip route show | grep "default via" | cut -d " " -f5)
 UPLINKIP=$(ip a | grep "$UPLINK" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
 
 #Get public IP data
@@ -73,7 +70,7 @@ else
 fi
 
 #Compose the message
-TEXT=''
+TEXT=""
 TEXT+="%f0%9f%9f%a2 <b>$HOSTNAME is now online</b> %0A"
 if [ "$ETH0IP" ]; then
   TEXT+="Eth0 IP address: <code>$ETH0IP</code> %0A"
@@ -105,22 +102,14 @@ fi
 #Try using this instead for complex text
 #curl --data chat_id=12345678 --data-urlencode "text=Some complex text $25 78%"  "https://api.telegram.org/bot0000000:KEYKEYKEYKEYKEYKEY/sendMessage"
 
-#First attempt to send message
-timeout 5 curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_API_KEY/sendMessage?chat_id=$TELEGRAM_CHAT_ID&parse_mode=html&text=$TEXT" > /dev/null
-if [ "$?" != 0 ]; then
-  sleep 3
-  echo "Error: First attempt to send message failed! Resending now..."
-  #Second attempt to send message
-  timeout 5 curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_API_KEY/sendMessage?chat_id=$TELEGRAM_CHAT_ID&parse_mode=html&text=$TEXT" > /dev/null
+#Send message
+TELEGRAM_RESPONSE=$(timeout 5 curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_API_KEY/sendMessage?chat_id=$TELEGRAM_CHAT_ID&parse_mode=html&text=$TEXT" | jq '.ok')
 
-  if [ "$?" != 0 ]; then
-    echo "Error: Second attempt to send meesage failed! Giving up."
-    exit 4
-  else
-    echo "Message successfully sent at second attempt"
-  fi
-else
-  echo "Message successfully sent"
+if [ "$TELEGRAM_RESPONSE" == "true" ]; then
+  echo "Telegram message successfully sent"
   logger "networkinfo telegrambot: Message successfully sent"
+else
+  echo "Error: Failed to send Telegram message"
+  logger "networkinfo telegrambot: Error - Failed to send message"
+  exit 4
 fi
-

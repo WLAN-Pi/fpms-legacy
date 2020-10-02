@@ -7,7 +7,7 @@ DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 sudo "$DIRECTORY"/lldpneigh.sh >/dev/null 2>&1 &
 sudo "$DIRECTORY"/cdpneigh.sh >/dev/null 2>&1 &
 #Start monitoring internet connectivity immediately after the WLAN Pi boots up
-"$DIRECTORY"/watchinternet.sh >/dev/null 2>&1 & 
+"$DIRECTORY"/watchinternet.sh >/dev/null 2>&1 &
 
 #Monitor up/down status changes of eth0 and execute neighbour detection or cleanup
 tail -fn0 /var/log/messages |
