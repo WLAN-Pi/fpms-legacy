@@ -100,6 +100,7 @@ g_vars = {
     'pageSleepCountdown': PAGE_SLEEP, # Set page sleep control
     'home_page_name': "Home",       # Display name for top level menu
     'key_map': 'classic',      # key map options: classic, alt, symbols
+    'blinker_status': False,
 
 }
 
@@ -225,6 +226,10 @@ def show_mist_test():
 def show_blinker():
     utils_obj = Utils(g_vars)
     utils_obj.show_blinker(g_vars)
+
+def stop_blinker():
+    utils_obj = Utils(g_vars)
+    utils_obj.stop_blinker(g_vars)
 
 def show_wpa_passphrase():
     utils_obj = Utils(g_vars)
@@ -428,7 +433,8 @@ menu = [
         },
         {"name": "Port Blinker", "action": [
             {"name": "Back", "action": go_up},
-            {"name": "Blink eth0 5x", "action": show_blinker},
+            {"name": "Start", "action": show_blinker},
+            {"name": "Stop", "action": stop_blinker},
         ]
         },
         {"name": "WPA Passphrase", "action": show_wpa_passphrase},
