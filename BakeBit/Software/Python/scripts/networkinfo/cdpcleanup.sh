@@ -9,7 +9,7 @@ OUTPUTFILE="/tmp/cdpneigh.txt"
 logger "networkinfo script: cleaning CDP neighbour cache files"
 echo "No neighbour, takes up to 60 seconds" > "$OUTPUTFILE"
 #Tell me if eth0 is down 
-sudo /sbin/ethtool eth0 | grep -q "Link detected: no" && echo "Eth0 is down" > "$OUTPUTFILE"
+sudo /sbin/ethtool eth0 | grep -q "Link detected: no" && echo "eth0 is down" > "$OUTPUTFILE"
 
 #Remove capture file
 sudo rm -f "$CAPTUREFILE"

@@ -168,7 +168,7 @@ if os.path.isfile(WLANPI_IMAGE_FILE):
         (name, value) = line.split("=")
         if name=="VERSION":
             version = value.strip()
-            g_vars['wlanpi_ver'] = "WLAN Pi v" + version[1:-1]
+            g_vars['wlanpi_ver'] = "WLAN Pi " + version[1:-1]
             break
 
 # get hostname
@@ -591,8 +591,17 @@ def receive_signal(signum, stack, g_vars=g_vars):
 ###############################################################################
 
 # First time around (power-up), draw logo on display
-rogues_gallery = [ 'images/wlanprologo.png', 'images/wlanprologo.png', 'images/wlanprologo.png', 'images/wlanprologo.png',
-    'images/jolla.png', 'images/wifinigel.png', 'images/jiribrejcha.png']
+rogues_gallery = [ 
+    'images/wlanprologo.png', 
+    'images/wlanprologo.png', 
+    'images/joshschmelzle.png', 
+    'images/crv.png',
+    'images/jolla.png', 
+    'images/wifinigel.png',
+    'images/dansfini.png', 
+    'images/jiribrejcha.png'
+]
+
 random_image = random.choice(rogues_gallery)
 image0 = Image.open(random_image).convert('1')
 
