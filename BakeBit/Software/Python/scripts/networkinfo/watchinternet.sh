@@ -24,15 +24,12 @@ while true; do
 
   #Current default route interface
   DEFAULT_ROUTE_CURRENTLY=$(ip route show | grep "default" | cut -d " " -f5)
-  #if [ -z "$DEFAULT_ROUTE_CURRENTLY" ]; then
-  #  echo -e "\e[91mNo default route\033[0m"
-  #fi
 
   if [[ "$DEFAULT_ROUTE_CURRENTLY" != "$DEFAULT_ROUTE_PREVIOUSLY" ]] && [[ "$DEFAULT_ROUTE_CURRENTLY" ]]; then
     echo "Default route via: $DEFAULT_ROUTE_CURRENTLY"
   fi
 
-  if timeout 3 nc -zw1 canireachthe.net 443 2>/dev/null 1>/dev/null; then
+  if timeout 3 nc -zw2 canireachthe.net 443 2>/dev/null 1>/dev/null; then
     CURRENTLY="online"
   else
     CURRENTLY="offline"
@@ -54,4 +51,5 @@ while true; do
   DEFAULT_ROUTE_PREVIOUSLY="$DEFAULT_ROUTE_CURRENTLY"
 
 done
+
 

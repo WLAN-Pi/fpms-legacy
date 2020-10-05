@@ -10,7 +10,7 @@ fi
 #Prevent multiple instances of the script to run at the same time
 for pid in $(pidof -x $0); do
     if [ $pid != $$ ]; then
-        echo "Another instance of the script is already running. Wait for it to finish first."
+        echo "Error: Another instance of CDP script is already running. Quitting."
         exit 1
     fi
 done

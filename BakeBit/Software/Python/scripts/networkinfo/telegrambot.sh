@@ -5,12 +5,33 @@
 
 #----------------------------------------------------------
 # READ THIS FIRST
-# Save your Telegram API key to the WLAN Pi by executing the below command. Remove "#" and replace "xxx" with your API key before executing.
-# sudo bash -c 'echo TELEGRAM_API_KEY="xxx" >> /etc/environment'
+#
+# Add your Telegram API key to this configuration file manually:
+# sudo nano /etc/networkinfo/telegrambot.conf
+#
+# Or by running this command once. Replace "xxx" with your key and remove the leading "#":
+# sudo bash -c 'echo "TELEGRAM_API_KEY=xxx" >> /etc/networkinfo/telegrambot.conf'
 #----------------------------------------------------------
 
-#Load environmental variables
-source /etc/environment
+CONFIG_PATH="/etc/networkinfo/"
+CONFIG_FILE="/etc/networkinfo/telegrambot.conf"
+
+#Check if the script is running as root
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+
+[ ! -d "$CONFIG_PATH" ] && sudo mkdir "$CONFIG_PATH"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+  bash -c "echo '#Uncomment the line below and replace xxx with your Telegram API key' >> $CONFIG_FILE"
+  bash -c "echo '#TELEGRAM_API_KEY=xxx' >> $CONFIG_FILE"
+  chmod 660 "$CONFIG_FILE"
+fi
+
+#Load configuration file
+source "$CONFIG_FILE"
 
 #Do not continue if Port Blinker is running. We don't want to spam you with Telegram messages every time eth0 goes up. 
 PORTBLINKERRUNNING=$(ps aux | grep "portblinker.sh" | grep -v "defunct" | grep -v "grep")
@@ -23,12 +44,10 @@ fi
 #Got the API key?
 if [ -z "$TELEGRAM_API_KEY" ]; then
   echo "Error: No Telegram API key found"
-  echo "Replace xxx with your Telegram API key and execute this command once:"
-  echo ""
-  echo "sudo bash -c 'echo TELEGRAM_API_KEY=\"xxx\" >> /etc/environment'"
-  echo ""
+  echo "Add your Telegram API key to this configuration file:"
+  echo "sudo nano /etc/networkinfo/telegrambot.conf"
   logger "networkinfo telegrambot: Error - No API key found!"
-  exit 2 
+  exit 1 
 fi
 
 #Get Chat ID - for this to work you have to send a Telegram message to the bot first from your laptop or phone
@@ -37,9 +56,9 @@ if [ -z "$TELEGRAM_CHAT_ID" ] || [ "$TELEGRAM_CHAT_ID" == "null" ]; then
   if [ -z "$TELEGRAM_CHAT_ID" ] || [ "$TELEGRAM_CHAT_ID" == "null" ]; then
     echo "Error: Telegram Chat ID not found. Send a Telegram message with any text to the bot. This is mandatory!"
     logger "networkinfo telegrambot: Error - No Chat ID found!"
-    exit 3
+    exit 1
   else
-      sudo bash -c "echo TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" >> /etc/environment"
+    bash -c "echo TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" >> $CONFIG_FILE"
   fi
 fi
 
@@ -111,5 +130,5 @@ if [ "$TELEGRAM_RESPONSE" == "true" ]; then
 else
   echo "Error: Failed to send Telegram message"
   logger "networkinfo telegrambot: Error - Failed to send message"
-  exit 4
+  exit 1
 fi
