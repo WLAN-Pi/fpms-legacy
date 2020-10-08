@@ -12,8 +12,8 @@ DHCPSRVNAME=$(grep -A 13 'interface "eth0"' "$ETH0LEASES" | tail -13 | grep -B 1
 DHCPSRVADDR=$(grep -A 13 'interface "eth0"' "$ETH0LEASES" | tail -13 | grep -B 1 -A 10 "$ACTIVEIP" | grep "dhcp-server-identifier" | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
 DOMAINNAME=$(grep -A 13 'interface "eth0"' "$ETH0LEASES" | tail -13 | grep -B 1 -A 10 "$ACTIVEIP" | grep "domain-name " | cut -d '"' -f2)
 DEFAULTGW=$(/sbin/route -n | grep G | grep eth0 | cut -d ' ' -f 10)
-SPEED=$(ethtool eth0 | grep -q "Link detected: yes" && ethtool eth0 | grep "Speed" | sed 's/....$//' | cut -d ' ' -f2  || echo "Disconnected")
-DUPLEX=$(ethtool eth0 | grep -q "Link detected: yes" && ethtool eth0 | grep "Duplex" | cut -d ' ' -f 2 || echo "Disconnected")
+SPEED=$(ethtool eth0 2>/dev/null | grep -q "Link detected: yes" && ethtool eth0 2>/dev/null | grep "Speed" | sed 's/....$//' | cut -d ' ' -f2  || echo "Disconnected")
+DUPLEX=$(ethtool eth0 2>/dev/null | grep -q "Link detected: yes" && ethtool eth0 2>/dev/null | grep "Duplex" | cut -d ' ' -f 2 || echo "Disconnected")
 DNSSERVERS=$(grep "nameserver" /etc/resolv.conf | sed 's/nameserver/DNS:/g')
 
 if [ "$ETH0ISUP" ]; then
