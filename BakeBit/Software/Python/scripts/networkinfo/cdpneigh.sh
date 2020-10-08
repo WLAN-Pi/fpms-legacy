@@ -27,7 +27,7 @@ logger "networkinfo script: looking for a CDP neighbour"
 #Run packet capture for up to 61 seconds or stop after we have got the right packets
 TIMETOSTOP=0
 while [ "$TIMETOSTOP" == 0 ]; do
-    timeout 61 sudo tcpdump -v -s 1500 -c 1 'ether[20:2] == 0x2000' -Q in > "$CAPTUREFILE"
+    timeout 61 sudo tcpdump -v -s 1500 -c 1 'ether[20:2] == 0x2000' -i eth0 -Q in > "$CAPTUREFILE"
     TIMETOSTOP=$(grep "CDP" "$CAPTUREFILE")
 done
 
@@ -41,7 +41,12 @@ fi
 
 #Be careful this first statement uses tee without -a and overwrites the content of the text file
 DEVICEID=$(grep "Device-ID" "$CAPTUREFILE" | cut -d "'" -f2)
-echo -e "Name: $DEVICEID" 2>&1 | tee "$OUTPUTFILE"
+if [ "$DEVICEID" ]; then
+    echo -e "Name: $DEVICEID" 2>&1 | tee "$OUTPUTFILE"
+else
+    echo "No neighbour name found in CDP packet" 2>&1 | tee "$OUTPUTFILE"
+    exit 0
+fi
 
 PORT=$(grep "Port-ID" "$CAPTUREFILE" | cut -d "'" -f2)
 if [ "$PORT" ]; then
@@ -64,7 +69,9 @@ if [ "$NATIVEVLAN" ]; then
 fi
 
 PLATFORM=$(grep "Platform" "$CAPTUREFILE" | cut -d "'" -f2)
-echo -e "Model: $PLATFORM" 2>&1 | tee -a "$OUTPUTFILE"
+if [ "$PLATFORM" ]; then
+    echo -e "Model: $PLATFORM" 2>&1 | tee -a "$OUTPUTFILE"
+fi
 
 SWVER=$(grep -A 1 "Version String" "$CAPTUREFILE" | tail -n 1 | sed 's/^[[:space:]]*//')
 if [ "$SWVER" ]; then
