@@ -37,6 +37,7 @@ FONTB14 =  ImageFont.truetype('DejaVuSansMono-Bold.ttf', 14)
 
 # Linux programs
 IFCONFIG_FILE = '/sbin/ifconfig'
+IWCONFIG_FILE = '/sbin/iwconfig'
 IW_FILE = '/sbin/iw'
 UFW_FILE = '/usr/sbin/ufw'
 ETHTOOL_FILE = '/sbin/ethtool'
