@@ -18,7 +18,8 @@ binary_name=NanoHatOLED
 
 SERVICE_SUBS = \
 	s,[@]bindir[@],$(bindir),g; \
-	s,[@]datadir[@],$(datadir),g
+	s,[@]datadir[@],$(datadir),g; \
+	s,[@]networkinfo[@],$(prefix)/$(networkinfo_rel_dir),g
 
 OLED_SCRIPT_SUBS = \
 	s,[@]bindir[@],$(bindir),g; \
@@ -41,11 +42,16 @@ fpms.service: fpms.service.in
 	@echo "Set the prefix on fpms.service"
 	sed -e '$(SERVICE_SUBS)' $< > $@
 
-install: installdirs $(binary_name) oled-start fpms.service networkinfo-links
+networkinfo.service: networkinfo.service.in
+	@echo "Set the prefix on networkinfo.service"
+	sed -e '$(SERVICE_SUBS)' $< > $@
+
+install: installdirs $(binary_name) oled-start fpms.service networkinfo-links networkinfo.service
 	cp -rf $(filter-out debian fpms.service.in $^,$(wildcard *)) $(install_data_dir)
 	install oled-start $(install_bin_dir)
 	install $(binary_name) $(install_bin_dir)
 	install -m 644 fpms.service $(DESTDIR)/lib/systemd/system
+	install -m 644 networkinfo.service $(DESTDIR)/lib/systemd/system
 
 installdirs:
 	mkdir -p $(install_bin_dir) \
