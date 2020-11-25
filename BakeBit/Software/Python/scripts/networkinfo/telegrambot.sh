@@ -76,11 +76,11 @@ UPLINKIP=$(ip a | grep "$UPLINK" | grep "inet" | grep -v "secondary" | head -n1 
 
 #Get public IP data
 DATAINJSON=$(timeout 3 curl -s 'ifconfig.co/json')
-PUBLICIP=$(echo "$DATAINJSON" | grep -Po '"ip":"\K[^"]*')
-PUBLICIPCOUNTRY=$(echo "$DATAINJSON" | grep -Po '"country":"\K[^"]*')
-PUBLICIPASNORG=$(echo "$DATAINJSON" | grep -Po '"asn_org":"\K[^"]*')
-PUBLICIPHOSTNAME=$(echo "$DATAINJSON" | grep -Po '"hostname":"\K[^"]*')
-PUBLICIPASN=$(echo "$DATAINJSON" | grep -Po '"asn":"\K[^"]*')
+PUBLICIP=$(echo "$DATAINJSON" | jq -r '.ip')
+PUBLICIPCOUNTRY=$(echo "$DATAINJSON" | jq -r '.country')
+PUBLICIPASNORG=$(echo "$DATAINJSON" | jq -r '.asn_org')
+PUBLICIPHOSTNAME=$(echo "$DATAINJSON" | jq -r '.hostname')
+PUBLICIPASN=$(echo "$DATAINJSON" | jq -r '.asn')
 
 if [ -z "$ETH0IP" ]; then
   CURRENTIP="$UPLINKIP"
