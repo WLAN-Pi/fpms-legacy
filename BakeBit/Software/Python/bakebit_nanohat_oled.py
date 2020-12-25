@@ -285,9 +285,14 @@ def profiler_start_no11ax():
     app_obj = App(g_vars)
     app_obj.profiler_start_no11ax(g_vars)
 
-def profiler_purge():
+def profiler_purge_reports():
     app_obj = App(g_vars)
-    app_obj.profiler_purge(g_vars)
+    app_obj.profiler_purge_reports(g_vars)
+
+def profiler_purge_files():
+    app_obj = App(g_vars)
+    app_obj.profiler_purge_files(g_vars)
+
 
 ###########################
 # System menu area utils
@@ -472,7 +477,8 @@ menu = [
             {"name": "Start", "action":           profiler_start},
             {"name": "Start (no 11r)", "action":  profiler_start_no11r},
             {"name": "Start (no 11ax)", "action":  profiler_start_no11ax},
-            {"name": "Purge Reports", "action":   profiler_purge},
+            {"name": "Purge Reports", "action":   profiler_purge_reports},
+            {"name": "Purge Files", "action":     profiler_purge_files},
         ]
         },
     ]
