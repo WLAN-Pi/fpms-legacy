@@ -660,8 +660,20 @@ while True:
             if g_vars['start_up'] == True:
                 g_vars['option_selected'] = home_page
 
-             # Re-run current action to refresh screen
-            g_vars['option_selected']()
+            # Re-run current action to refresh screen
+            #
+            # Handle when g_vars['option_selected'] does not return
+            #   a func but returns a list instead and fpms freezes.
+            #
+            # investigate by uncommenting these print statements
+            # and `tail -f /tmp/nanoled-python.log`:
+            # print(g_vars['option_selected'])
+            # print(type(g_vars['option_selected']))
+
+            if isinstance(g_vars['option_selected'], list):
+                continue
+            else:
+                g_vars['option_selected']()
         else:
             # lets try drawing our page (or refresh if already painted)
 
