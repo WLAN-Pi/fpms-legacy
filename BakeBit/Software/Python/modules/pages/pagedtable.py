@@ -67,8 +67,8 @@ class PagedTable(object):
         page_count = len(table_pages)
 
         # Display the page selected - correct over-shoot of page down
-        if g_vars['current_scroll_selection'] == page_count:
-            g_vars['current_scroll_selection'] -= 1
+        if g_vars['current_scroll_selection'] >= page_count:
+            g_vars['current_scroll_selection'] = page_count - 1
 
         # Correct over-shoot of page up
         if g_vars['current_scroll_selection'] == -1:
