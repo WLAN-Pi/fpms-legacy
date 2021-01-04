@@ -11,11 +11,11 @@ if [ ! "$DATAINJSON" ]; then
 fi
 
 #Parse them
-PUBLICIP=$(echo "$DATAINJSON" | grep -Po '"ip":"\K[^"]*')
-PUBLICIPCOUNTRY=$(echo "$DATAINJSON" | grep -Po '"country":"\K[^"]*')
-PUBLICIPASNORG=$(echo "$DATAINJSON" | grep -Po '"asn_org":"\K[^"]*')
-PUBLICIPHOSTNAME=$(echo "$DATAINJSON" | grep -Po '"hostname":"\K[^"]*')
-PUBLICIPASN=$(echo "$DATAINJSON" | grep -Po '"asn":"\K[^"]*')
+PUBLICIP=$(echo "$DATAINJSON" | jq -r '.ip')
+PUBLICIPCOUNTRY=$(echo "$DATAINJSON" | jq -r '.country')
+PUBLICIPASNORG=$(echo "$DATAINJSON" | jq -r '.asn_org')
+PUBLICIPHOSTNAME=$(echo "$DATAINJSON" | jq -r '.hostname')
+PUBLICIPASN=$(echo "$DATAINJSON" | jq -r '.asn')
 
 #Display data
 if [ "$PUBLICIP" ]; then
