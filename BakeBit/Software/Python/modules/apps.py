@@ -120,12 +120,12 @@ class App(object):
             else:
                 try:
                     cmd = "/bin/systemctl start profiler.service"
-                    subprocess.run(cmd, shell=True, timeout=2)
+                    subprocess.run(cmd, shell=True, timeout=5)
                     dialog_msg = "Started."
                 except subprocess.CalledProcessError as proc_exc:
                     dialog_msg = 'Start failed!'
                 except subprocess.TimeoutExpired as timeout_exc:
-                    dialog_msg = 'Proc timed-out!'
+                    dialog_msg = 'Timeout starting profiler!'
                     
         elif action == "stop":
 
