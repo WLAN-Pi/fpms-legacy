@@ -8,13 +8,13 @@ from PIL import ImageFont
 import os
 import pathlib
 
-__version__ = "2.0.5"
+__version__ = "2.0.2"
 __author__ = "wifinigel@gmail.com"
 
 PAGE_SLEEP = 300             # Time in secs before sleep
 PAGE_WIDTH = 128             # Pixel size of screen width
-PAGE_HEIGHT = 64             # Pixel size of screen height
-NAV_BAR_TOP = 54             # Top pixel number of nav bar
+PAGE_HEIGHT = 64 + 64             # Pixel size of screen height
+NAV_BAR_TOP = 54 + 64            # Top pixel number of nav bar
 MENU_VERSION =  __version__  # fpms version
 
 # figure out the script path
