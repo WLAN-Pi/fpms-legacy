@@ -73,14 +73,18 @@ MODE=$(cat /etc/wlanpi-state)
 ETH0IP=$(ip a | grep "eth0" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
 UPLINK=$(ip route show | grep "default via" | cut -d " " -f5)
 UPLINKIP=$(ip a | grep "$UPLINK" | grep "inet" | grep -v "secondary" | head -n1 | cut -d '/' -f1 | cut -d ' ' -f6)
+NEIGHBOUR=$(grep -q "Name:" /tmp/lldpneigh.txt 2>/dev/null && cat /tmp/lldpneigh.txt | sed 's/^Name:/Connected to:/g' | sed 's/^Desc:/Port description:/g' | sed 's/^IP:/Neighbour IP:/g' | sed -z 's/\n/%0A/g')
+if [ -z "$NEIGHBOUR" ]; then
+  NEIGHBOUR=$(grep -q "Name:" /tmp/cdpneigh.txt 2>/dev/null && cat /tmp/cdpneigh.txt | sed 's/^Name:/Connected to:/g' | sed 's/^Port:/Port description:/g' | sed 's/^IP:/Neighbour IP:/g' |sed 's/^SW:/Software version:/g' | sed -z 's/\n/%0A/g')
+fi
 
 #Get public IP data
 DATAINJSON=$(timeout 3 curl -s 'ifconfig.co/json')
-PUBLICIP=$(echo "$DATAINJSON" | grep -Po '"ip":"\K[^"]*')
-PUBLICIPCOUNTRY=$(echo "$DATAINJSON" | grep -Po '"country":"\K[^"]*')
-PUBLICIPASNORG=$(echo "$DATAINJSON" | grep -Po '"asn_org":"\K[^"]*')
-PUBLICIPHOSTNAME=$(echo "$DATAINJSON" | grep -Po '"hostname":"\K[^"]*')
-PUBLICIPASN=$(echo "$DATAINJSON" | grep -Po '"asn":"\K[^"]*')
+PUBLICIP=$(echo "$DATAINJSON" | jq -r '.ip')
+PUBLICIPCOUNTRY=$(echo "$DATAINJSON" | jq -r '.country')
+PUBLICIPASNORG=$(echo "$DATAINJSON" | jq -r '.asn_org')
+PUBLICIPHOSTNAME=$(echo "$DATAINJSON" | jq -r '.hostname')
+PUBLICIPASN=$(echo "$DATAINJSON" | jq -r '.asn')
 
 if [ -z "$ETH0IP" ]; then
   CURRENTIP="$UPLINKIP"
@@ -102,6 +106,11 @@ else
 fi
 TEXT+="WLAN Pi mode: $MODE %0A"
 TEXT+="Uptime: $UPTIME %0A"
+
+if [ ! -z "$NEIGHBOUR" ]; then
+  TEXT+="%0A"
+  TEXT+="$NEIGHBOUR"
+fi
 
 TEXT+="%0A"
 TEXT+="Uplink to internet: $UPLINK %0A"

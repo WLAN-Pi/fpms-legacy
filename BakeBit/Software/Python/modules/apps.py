@@ -141,7 +141,7 @@ class App(object):
                 except subprocess.CalledProcessError as exc:
                     dialog_msg = 'Stop failed!'
                 
-        elif action == "purge":
+        elif action == "purge_reports":
             # call profiler2 with the --clean option
 
             self.simple_table_obj. display_dialog_msg(g_vars, "Please wait...", back_button_req=0)
@@ -153,7 +153,20 @@ class App(object):
             except subprocess.CalledProcessError as exc:
                 dialog_msg = "Reports purge error: {}".format(exc)
                 print(dialog_msg)
-            
+             
+        elif action == "purge_files":
+            # call profiler2 with the --clean --files option
+
+            self.simple_table_obj. display_dialog_msg(g_vars, "Please wait...", back_button_req=0)
+
+            try:
+                cmd = "/opt/wlanpi/pipx/bin/profiler --clean --files --yes"
+                subprocess.run(cmd, shell=True)
+                dialog_msg = "Files purged."
+            except subprocess.CalledProcessError as exc:
+                dialog_msg = "Files purge error: {}".format(exc)
+                print(dialog_msg)
+
         # signal that result is cached (stops re-painting screen)
         g_vars['result_cache'] = True
 
@@ -185,6 +198,10 @@ class App(object):
         self.profiler_ctl(g_vars, action="start_no11ax")
         return
 
-    def profiler_purge(self, g_vars):
-        self.profiler_ctl(g_vars, action="purge")
+    def profiler_purge_reports(self, g_vars):
+        self.profiler_ctl(g_vars, action="purge_reports")
+        return
+
+    def profiler_purge_files(self, g_vars):
+        self.profiler_ctl(g_vars, action="purge_files")
         return

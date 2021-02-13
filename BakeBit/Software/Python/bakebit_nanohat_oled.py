@@ -285,9 +285,14 @@ def profiler_start_no11ax():
     app_obj = App(g_vars)
     app_obj.profiler_start_no11ax(g_vars)
 
-def profiler_purge():
+def profiler_purge_reports():
     app_obj = App(g_vars)
-    app_obj.profiler_purge(g_vars)
+    app_obj.profiler_purge_reports(g_vars)
+
+def profiler_purge_files():
+    app_obj = App(g_vars)
+    app_obj.profiler_purge_files(g_vars)
+
 
 ###########################
 # System menu area utils
@@ -472,7 +477,8 @@ menu = [
             {"name": "Start", "action":           profiler_start},
             {"name": "Start (no 11r)", "action":  profiler_start_no11r},
             {"name": "Start (no 11ax)", "action":  profiler_start_no11ax},
-            {"name": "Purge Reports", "action":   profiler_purge},
+            {"name": "Purge Reports", "action":   profiler_purge_reports},
+            {"name": "Purge Files", "action":     profiler_purge_files},
         ]
         },
     ]
@@ -654,8 +660,20 @@ while True:
             if g_vars['start_up'] == True:
                 g_vars['option_selected'] = home_page
 
-             # Re-run current action to refresh screen
-            g_vars['option_selected']()
+            # Re-run current action to refresh screen
+            #
+            # Handle when g_vars['option_selected'] does not return
+            #   a func but returns a list instead and fpms freezes.
+            #
+            # investigate by uncommenting these print statements
+            # and `tail -f /tmp/nanoled-python.log`:
+            # print(g_vars['option_selected'])
+            # print(type(g_vars['option_selected']))
+
+            if isinstance(g_vars['option_selected'], list):
+                continue
+            else:
+                g_vars['option_selected']()
         else:
             # lets try drawing our page (or refresh if already painted)
 
