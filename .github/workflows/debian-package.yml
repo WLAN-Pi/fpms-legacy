@@ -16,6 +16,8 @@ jobs:
       matrix:
         distro: [buster]
         arch: [armhf]
+    
+    environment: GEMFURY
 
     steps:
       - name: Checkout
@@ -30,5 +32,5 @@ jobs:
         uses: danielmundi/upload-gemfury@main
         with:
           package-name: ${{ steps.build-debian-package.outputs.deb-package }}
-          gemfury-username: ${{ GEMFURY_NAME }}
-          gemfury-token: ${{ GEMFURY_TOKEN }}
+          gemfury-username: ${{ secrets.GEMFURY_NAME }}
+          gemfury-token: ${{ secrets.GEMFURY_TOKEN }}
