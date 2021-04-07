@@ -1,0 +1,12 @@
+fpms (2.0.5) unstable; urgency=medium
+
+  * Update to latest version
+  * Several changes and improvements
+
+ -- Daniel Finimundi <daniel@finimundi.com>  Wed, 07 Apr 2021 09:47:09 -0300
+
+fpms (0.1-1) unstable; urgency=low
+
+  * Debianize fpms package.
+
+ -- Daniel Finimundi <daniel@finimundi.com>  Sun, 10 May 2020 01:01:54 -0300
