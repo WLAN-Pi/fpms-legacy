@@ -8,7 +8,7 @@ from PIL import ImageFont
 import os
 import pathlib
 
-__version__ = "2.0.5"
+__version__ = "2.1.0"
 __author__ = "wifinigel@gmail.com"
 
 PAGE_SLEEP = 300             # Time in secs before sleep
