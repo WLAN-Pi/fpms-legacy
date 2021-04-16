@@ -1,8 +1,8 @@
-fpms (2.1.0) UNRELEASED; urgency=medium
+fpms (2.1.0) unstable; urgency=medium
 
   * Updating version for new release
 
- -- Daniel Finimundi <daniel@finimundi.com>  Thu, 15 Apr 2021 20:32:29 -0300
+ -- Daniel Finimundi <daniel@finimundi.com>  Fri, 16 Apr 2021 10:53:19 -0300
 
 fpms (2.0.5) unstable; urgency=medium
 
