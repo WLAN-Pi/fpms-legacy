@@ -1,6 +1,6 @@
-fpms (2.1.1) unstable; urgency=medium
+fpms (2.1.2) unstable; urgency=medium
 
-  * arping fix for CM4
+  * Updating version for new release
 
  -- Jiri Brejcha <jirka@jiribrejcha.net>  Wed, 23 June 2021 12:33:46 0000
 
