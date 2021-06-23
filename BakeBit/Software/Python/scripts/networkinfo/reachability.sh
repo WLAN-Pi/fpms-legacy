@@ -114,10 +114,8 @@ if [ "$DNSSERVER3" ]; then
   [ "$DNS3RET" == "0" ] && echo "Ter DNS Resol:    OK" || echo "Ter DNS Resol:  FAIL"
 fi
 
-#arping default gateway - useful if gateway is configured not to respond to pings
+#ARPing default gateway - useful if gateway is configured not to respond to pings
 ARPINGRTT=$(grep "ms" "$TMPDIR/arpinggateway.txt" | cut -d " " -f7 | cut -d "." -f1)
-#CM4 uses different arping output
-[ "$ARPINGRTT" ] || ARPINGRTT=$(grep "ms" "$TMPDIR/arpinggateway.txt" | cut -d "/" -f5 | cut -d "." -f1)
   if [ "$ARPINGRTT" ]; then
     ARPINGRTT="${ARPINGRTT}ms"
     ARPINGSTR1="Arping Gateway:"
