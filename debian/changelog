@@ -2,13 +2,13 @@ wlanpi-fpms (2.1.3) unstable; urgency=medium
 
   * Support for SPI display
 
- -- Jiri Brejcha <jirka@jiribrejcha.net>  Wed, 28 July 2021 12:33:46 0000
+ -- Jiri Brejcha <jirka@jiribrejcha.net>  Wed, 28 July 2021 12:33:46 +0000
 
 wlanpi-fpms (2.1.2) unstable; urgency=medium
 
   * Updating version for new release
 
- -- Jiri Brejcha <jirka@jiribrejcha.net>  Wed, 23 June 2021 12:33:46 0000
+ -- Jiri Brejcha <jirka@jiribrejcha.net>  Wed, 23 June 2021 12:33:46 +0000
 
 wlanpi-fpms (2.1.0) unstable; urgency=medium
 
@@ -23,7 +23,7 @@ wlanpi-fpms (2.0.5) unstable; urgency=medium
 
  -- Daniel Finimundi <daniel@finimundi.com>  Wed, 07 Apr 2021 09:47:09 -0300
 
-wlanpi-fpms (0.1-1) unstable; urgency=low
+wlanpi-fpms (0.1.1) unstable; urgency=low
 
   * Debianize fpms package.
 
