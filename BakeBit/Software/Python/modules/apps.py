@@ -71,7 +71,7 @@ class App(object):
             g_vars['result_cache'] = True
             return
         
-        config_file = "/etc/profiler2/config.ini"
+        config_file = "/etc/wlanpi-profiler/config.ini"
       
         dialog_msg = "Unset"
         item_list = []
