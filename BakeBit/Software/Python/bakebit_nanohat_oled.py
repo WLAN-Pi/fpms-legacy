@@ -596,23 +596,26 @@ def receive_signal(signum, stack, g_vars=g_vars):
 #
 ###############################################################################
 
-# First time around (power-up), draw logo on display
-rogues_gallery = [ 
-    'images/wlanprologo.png', 
-    'images/wlanprologo.png', 
-    'images/joshschmelzle.png', 
-    'images/crv.png',
-    'images/jolla.png', 
-    'images/wifinigel.png',
-    'images/dansfini.png', 
-    'images/jiribrejcha.png'
+
+###############################################################################
+# Splash screen
+###############################################################################
+
+splash_screen_images = [
+    'images/wlanpi0.png',
+    'images/wlanpi1.png',
+    'images/wlanpi2.png',
+    'images/wlanpi3.png',
+    'images/wlanpi4.png'
 ]
 
-random_image = random.choice(rogues_gallery)
-image0 = Image.open(random_image).convert('1')
+for image in splash_screen_images:
+    img = Image.open(image).convert('1')
+    oled.drawImage(img)
+    time.sleep(0.100)
 
-oled.drawImage(image0)
-time.sleep(2)
+# Leave logo on screen some more time
+time.sleep(1.8)
 
 # Set signal handlers for button presses - these fire every time a button
 # is pressed
